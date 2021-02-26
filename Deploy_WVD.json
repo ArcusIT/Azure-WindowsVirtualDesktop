@@ -1,0 +1,219 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+      "KlantAfkorting": {
+        "type": "string"
+      },
+      "adminUsername": {
+        "type": "string",
+        "defaultValue": "arcusadmin",
+        "metadata": {
+          "description": "Username for the Virtual Machine."
+        }
+      },
+      "adminPassword": {
+        "type": "securestring",
+        "minLength": 12,
+        "metadata": {
+          "description": "Password for the Virtual Machine."
+        }
+      }
+    },
+    "variables": {
+        "vmSize": "Standard_D2_v3",
+        "vmName": "[concat(parameters('KlantAfkorting'),'-ADDS')]",
+        "nicName": "NIC01",
+        "OSVersion": "2019-Datacenter",
+        "storageAccountName": "[concat('bootdiags', uniquestring(resourceGroup().id))]",
+        "location": "[resourceGroup().location]",
+        "vnetName": "[concat(parameters('KlantAfkorting'),'-prod-vNet')]",
+        "vnetAddressPrefix": "10.0.0.0/16",
+        "subnet1Prefix": "10.0.0.0/24",
+        "subnet1Name": "Subnet1",
+        "subnet2Prefix": "10.0.1.0/24",
+        "subnet2Name": "Subnet2",
+        "public-ip-address-name": "[concat(parameters('KlantAfkorting'),'-pip')]",
+        "bastion-subnet-name": "AzureBastionSubnet",
+        "bastion-subnet-ip-prefix": "10.0.3.0/24",
+        "bastion-name": "[concat(parameters('KlantAfkorting'),'-Bastion')]",
+        "bastion-host-name": "ADDS01"
+    },
+    "resources": [
+      {
+        "type": "Microsoft.Network/virtualNetworks",
+        "apiVersion": "2020-05-01",
+        "name": "[variables('vnetName')]",
+        "location": "[variables('location')]",
+        "properties": {
+          "addressSpace": {
+            "addressPrefixes": [
+              "[variables('vnetAddressPrefix')]"
+            ]
+          }
+        },
+        "resources": [
+          {
+            "type": "subnets",
+            "apiVersion": "2020-05-01",
+            "location": "[variables('location')]",
+            "name": "[variables('subnet1Name')]",
+            "dependsOn": [
+              "[variables('vnetName')]"
+            ],
+            "properties": {
+              "addressPrefix": "[variables('subnet1Prefix')]"
+            }
+          },
+          {
+            "type": "subnets",
+            "apiVersion": "2020-05-01",
+            "location": "[variables('location')]",
+            "name": "[variables('subnet2Name')]",
+            "dependsOn": [
+              "[variables('vnetName')]",
+              "[variables('subnet1Name')]"
+            ],
+            "properties": {
+              "addressPrefix": "[variables('subnet2Prefix')]"
+            }
+          },
+          {       
+            "type": "subnets",
+            "apiVersion": "2020-05-01",
+            "location": "[variables('location')]",
+            "name": "[variables('bastion-subnet-name')]",
+            "dependsOn": [
+              "[variables('vnetName')]",
+              "[variables('subnet1Name')]",
+              "[variables('subnet2Name')]"
+            ],
+            "properties": {
+                "addressPrefix": "[variables('bastion-subnet-ip-prefix')]"
+            }
+          }
+        ]
+      },
+      {
+        "type": "Microsoft.Storage/storageAccounts",
+        "apiVersion": "2019-06-01",
+        "name": "[variables('storageAccountName')]",
+        "location": "[variables('location')]",
+        "sku": {
+          "name": "Standard_LRS"
+        },
+        "kind": "Storage",
+        "properties": {}
+      },
+      {
+        "apiVersion": "2020-05-01",
+        "type": "Microsoft.Network/publicIpAddresses",
+        "name": "[variables('public-ip-address-name')]",
+        "location": "[variables('location')]",
+        "sku": {
+            "name": "Standard"
+        },
+        "properties": {
+            "publicIPAllocationMethod": "Static"
+        }
+      },
+      {
+        "type": "Microsoft.Network/networkInterfaces",
+        "apiVersion": "2020-06-01",
+        "name": "[variables('nicName')]",
+        "location": "[variables('location')]",
+        "dependsOn": [
+          "[resourceId('Microsoft.Network/virtualNetworks', variables('vnetName'))]"
+        ],
+        "properties": {
+          "ipConfigurations": [
+            {
+              "name": "ipconfig1",
+              "properties": {
+                "privateIPAddress": "10.0.0.11",
+                "privateIPAllocationMethod": "Static",
+                "subnet": {
+                  "id": "[concat(resourceId('Microsoft.Network/virtualNetworks',variables('vnetName')),'/subnets/', variables('subnet1Name'))]"
+                },
+                "primary": true,
+                "privateIPAddressVersion": "IPv4"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "type": "Microsoft.Compute/virtualMachines",
+        "apiVersion": "2020-06-01",
+        "name": "[variables('vmName')]",
+        "location": "[variables('location')]",
+        "dependsOn": [
+          "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]",
+          "[resourceId('Microsoft.Network/networkInterfaces', variables('nicName'))]"
+        ],
+        "properties": {
+          "hardwareProfile": {
+            "vmSize": "[variables('vmSize')]"
+          },
+          "osProfile": {
+            "computerName": "[variables('vmName')]",
+            "adminUsername": "[parameters('adminUsername')]",
+            "adminPassword": "[parameters('adminPassword')]"
+          },
+          "storageProfile": {
+            "imageReference": {
+              "publisher": "MicrosoftWindowsServer",
+              "offer": "WindowsServer",
+              "sku": "[variables('OSVersion')]",
+              "version": "latest"
+            },
+            "osDisk": {
+              "createOption": "FromImage",
+              "managedDisk": {
+                "storageAccountType": "StandardSSD_LRS"
+              }
+            }
+          },
+          "networkProfile": {
+            "networkInterfaces": [
+              {
+                "id": "[resourceId('Microsoft.Network/networkInterfaces', variables('nicName'))]"
+              }
+            ]
+          },
+          "diagnosticsProfile": {
+            "bootDiagnostics": {
+              "enabled": true,
+              "storageUri": "[reference(resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))).primaryEndpoints.blob]"
+            }
+          }
+        }
+      },
+      {
+        "apiVersion": "2020-05-01",
+        "type": "Microsoft.Network/bastionHosts",
+        "name": "[variables('bastion-name')]",
+        "location": "[variables('location')]",
+        "dependsOn": [
+            "[resourceId('Microsoft.Network/publicIpAddresses', variables('public-ip-address-name'))]",
+            "[resourceId('Microsoft.Network/virtualNetworks', variables('vnetname'))]",
+            "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('vnetname'), variables('bastion-subnet-name'))]"
+        ],
+        "properties": {
+            "ipConfigurations": [
+                {
+                    "name": "IpConf",
+                    "properties": {
+                        "subnet": {
+                            "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('vnetname'), variables('bastion-subnet-name'))]"
+                        },
+                        "publicIPAddress": {
+                            "id": "[resourceId('Microsoft.Network/publicIpAddresses', variables('public-ip-address-name'))]"
+                        }
+                    }
+                }
+            ]
+        }
+      }
+    ]
+  }
