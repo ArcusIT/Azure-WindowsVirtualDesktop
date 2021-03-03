@@ -21,39 +21,50 @@
           "description": "Password for the Virtual Machine."
         }
       },
-      "Location": {
+      "vnetAddressPrefix": {
         "type": "string",
-        "defaultValue": "westeurope"
+        "defaultValue": "10.0.0.0/16"
+      },
+      "ProdSubnet": {
+        "type": "string",
+        "defaultValue": "10.0.0.0/24"
+      },
+      "WebSubnet": {
+        "type": "string",
+        "defaultValue": "10.0.1.0/24"
+      },
+      "BastionSubnet": {
+        "type": "string",
+        "defaultValue": "10.0.3.0/24"
       }
     },
     "variables": {
+        "upcase_ka": "[toUpper(parameters('KlantAfkorting'))]",
+        "location": "[resourceGroup().location]",
         "vmSize": "Standard_D2_v3",
-        "vmName": "[concat(parameters('KlantAfkorting'),'-ADDS')]",
-        "nicName": "NIC01",
+        "vmName": "[concat(variables('upcase_ka'),'-ADDS01')]",
+        "nicName": "[concat(variables('upcase_ka'),'-ADDS01-NIC-01')]",
+        "vmIP": "10.0.0.11",
         "OSVersion": "2019-Datacenter",
-        "storageAccountName": "[concat('bootdiags', uniquestring(resourceGroup().id))]",
-        "vnetName": "[concat(parameters('KlantAfkorting'),'-prod-vNet')]",
-        "vnetAddressPrefix": "10.0.0.0/16",
-        "subnet1Prefix": "10.0.0.0/24",
-        "subnet1Name": "Subnet1",
-        "subnet2Prefix": "10.0.1.0/24",
-        "subnet2Name": "Subnet2",
-        "public-ip-address-name": "[concat(parameters('KlantAfkorting'),'-pip')]",
+        "storageAccountName": "[concat(variables('upcase_ka'),'-ADDS01-SA-01')]",
+        "storageAccountType": "Standard_LRS",
+        "vnetName": "[concat(variables('upcase_ka'),'-prod-vNet')]",
+        "subnet1Name": "Sub-prod-01",
+        "subnet2Name": "Sub-web-01",
+        "public-ip-address-name": "[concat(variables('upcase_ka'),'-pip')]",
         "bastion-subnet-name": "AzureBastionSubnet",
-        "bastion-subnet-ip-prefix": "10.0.3.0/24",
-        "bastion-name": "[concat(parameters('KlantAfkorting'),'-Bastion')]",
-        "bastion-host-name": "ADDS01"
+        "bastion-name": "Sub-bastion-01"
     },
     "resources": [
       {
         "type": "Microsoft.Network/virtualNetworks",
         "apiVersion": "2020-05-01",
         "name": "[variables('vnetName')]",
-        "location": "[parameters('location')]",
+        "location": "[variables('location')]",
         "properties": {
           "addressSpace": {
             "addressPrefixes": [
-              "[variables('vnetAddressPrefix')]"
+              "[parameters('vnetAddressPrefix')]"
             ]
           }
         },
@@ -61,32 +72,32 @@
           {
             "type": "subnets",
             "apiVersion": "2020-05-01",
-            "location": "[parameters('location')]",
+            "location": "[variables('location')]",
             "name": "[variables('subnet1Name')]",
             "dependsOn": [
               "[variables('vnetName')]"
             ],
             "properties": {
-              "addressPrefix": "[variables('subnet1Prefix')]"
+              "addressPrefix": "[parameters('ProdSubnet')]"
             }
           },
           {
             "type": "subnets",
             "apiVersion": "2020-05-01",
-            "location": "[parameters('location')]",
+            "location": "[variables('location')]",
             "name": "[variables('subnet2Name')]",
             "dependsOn": [
               "[variables('vnetName')]",
               "[variables('subnet1Name')]"
             ],
             "properties": {
-              "addressPrefix": "[variables('subnet2Prefix')]"
+              "addressPrefix": "[parameters('WebSubnet')]"
             }
           },
           {       
             "type": "subnets",
             "apiVersion": "2020-05-01",
-            "location": "[parameters('location')]",
+            "location": "[variables('location')]",
             "name": "[variables('bastion-subnet-name')]",
             "dependsOn": [
               "[variables('vnetName')]",
@@ -94,7 +105,7 @@
               "[variables('subnet2Name')]"
             ],
             "properties": {
-                "addressPrefix": "[variables('bastion-subnet-ip-prefix')]"
+                "addressPrefix": "[parameters('BastionSubnet')]"
             }
           }
         ]
@@ -103,9 +114,9 @@
         "type": "Microsoft.Storage/storageAccounts",
         "apiVersion": "2019-06-01",
         "name": "[variables('storageAccountName')]",
-        "location": "[parameters('location')]",
+        "location": "[variables('location')]",
         "sku": {
-          "name": "Standard_LRS"
+          "name": "[variables('storageAccountType')]"
         },
         "kind": "Storage",
         "properties": {}
@@ -114,7 +125,7 @@
         "apiVersion": "2020-05-01",
         "type": "Microsoft.Network/publicIpAddresses",
         "name": "[variables('public-ip-address-name')]",
-        "location": "[parameters('location')]",
+        "location": "[variables('location')]",
         "sku": {
             "name": "Standard"
         },
@@ -126,7 +137,7 @@
         "type": "Microsoft.Network/networkInterfaces",
         "apiVersion": "2020-06-01",
         "name": "[variables('nicName')]",
-        "location": "[parameters('location')]",
+        "location": "[variables('location')]",
         "dependsOn": [
           "[resourceId('Microsoft.Network/virtualNetworks', variables('vnetName'))]"
         ],
@@ -135,7 +146,7 @@
             {
               "name": "ipconfig1",
               "properties": {
-                "privateIPAddress": "10.0.0.11",
+                "privateIPAddress": "[variables('vmIP')]",
                 "privateIPAllocationMethod": "Static",
                 "subnet": {
                   "id": "[concat(resourceId('Microsoft.Network/virtualNetworks',variables('vnetName')),'/subnets/', variables('subnet1Name'))]"
@@ -151,7 +162,7 @@
         "type": "Microsoft.Compute/virtualMachines",
         "apiVersion": "2020-06-01",
         "name": "[variables('vmName')]",
-        "location": "[parameters('location')]",
+        "location": "[variables('location')]",
         "dependsOn": [
           "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]",
           "[resourceId('Microsoft.Network/networkInterfaces', variables('nicName'))]"
@@ -198,7 +209,7 @@
         "apiVersion": "2020-05-01",
         "type": "Microsoft.Network/bastionHosts",
         "name": "[variables('bastion-name')]",
-        "location": "[parameters('location')]",
+        "location": "[variables('location')]",
         "dependsOn": [
             "[resourceId('Microsoft.Network/publicIpAddresses', variables('public-ip-address-name'))]",
             "[resourceId('Microsoft.Network/virtualNetworks', variables('vnetname'))]",
