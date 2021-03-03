@@ -73,7 +73,9 @@
         "policyName": "DefaultBackupPolicy",
         "backupTime": [
           "03:00"
-        ]
+        ],
+        "protectionContainer": "[concat('iaasvmcontainer;iaasvmcontainerv2;', resourceGroup().name, ';', variables('vmName'))]",
+        "protectedItem": "[concat('vm;iaasvmcontainerv2;', resourceGroup().name, ';', variables('vmName'))]"
     },
     "resources": [
       {
@@ -462,6 +464,20 @@
             "retentionPolicyType": "LongTermRetentionPolicy"
           },
           "timeZone": "W. Europe Standard Time"
+        }
+      },
+      {
+        "type": "Microsoft.RecoveryServices/vaults/backupFabrics/protectionContainers/protectedItems",
+        "apiVersion": "2020-02-02",
+        "name": "[concat(variables('recoveryserviceName'), '/Azure/', variables('protectionContainer'), '/', variables('protectedItem'))]",
+        "dependsOn": [
+          "[resourceId('Microsoft.Compute/virtualMachines', variables('vmName'))]",
+          "[resourceId('Microsoft.RecoveryServices/vaults', variables('recoveryserviceName'))]"
+        ],
+        "properties": {
+          "protectedItemType": "Microsoft.Compute/virtualMachines",
+          "policyId": "[resourceId('Microsoft.RecoveryServices/vaults/backupPolicies', variables('recoveryserviceName'), variables('policyName'))]",
+          "sourceResourceId": "[resourceId('Microsoft.Compute/virtualMachines', variables('vmName'))]"
         }
       }
     ]
