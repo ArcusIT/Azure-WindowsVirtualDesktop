@@ -49,6 +49,8 @@
     "variables": {
         "upcase_ka": "[toUpper(parameters('KlantAfkorting'))]",
         "lwcase_ka": "[toLower(parameters('KlantAfkorting'))]",
+        "nsgName": "Nsg-sub-prod-01",
+        "nsgName2": "Nsg-sub-web-01",
         "location": "[resourceGroup().location]",
         "vmSize": "Standard_B2ms",
         "vmName": "[concat(variables('upcase_ka'),'-ADDS01')]",
@@ -69,6 +71,24 @@
         "workspaceName": "[concat(variables('upcase_ka'),'LogAnalytics-Workspace-01')]"
     },
     "resources": [
+      {
+          "type": "Microsoft.Network/networkSecurityGroups",
+          "apiVersion": "2020-05-01",
+          "name": "[variables('nsgName')]",
+          "location": "[variables('location')]",
+          "properties": {
+              "securityRules": []
+          }
+      },
+      {
+          "type": "Microsoft.Network/networkSecurityGroups",
+          "apiVersion": "2020-05-01",
+          "name": "[variables('nsgName2')]",
+          "location": "[variables('location')]",
+          "properties": {
+              "securityRules": []
+          }
+      },
       {
         "type": "Microsoft.Automation/automationAccounts",
         "apiVersion": "2015-10-31",
@@ -119,7 +139,10 @@
               "[variables('vnetName')]"
             ],
             "properties": {
-              "addressPrefix": "[parameters('ProdSubnet')]"
+              "addressPrefix": "[parameters('ProdSubnet')]",
+              "networkSecurityGroup": {
+                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgName'))]"
+              }
             }
           },
           {
@@ -132,7 +155,10 @@
               "[variables('subnet1Name')]"
             ],
             "properties": {
-              "addressPrefix": "[parameters('WebSubnet')]"
+              "addressPrefix": "[parameters('WebSubnet')]",
+              "networkSecurityGroup": {
+                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgName2'))]"
+              }
             }
           },
           {       
