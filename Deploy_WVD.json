@@ -475,7 +475,7 @@
       {
         "type": "Microsoft.RecoveryServices/vaults/backupFabrics/protectionContainers/protectedItems",
         "apiVersion": "2020-02-02",
-        "name": "[concat(variables('recoveryserviceName'), '/Azure/', variables('protectionContainer')[copyIndex()], '/', variables('protectedItem'))[copyIndex()]]",
+        "name": "[concat(variables('recoveryserviceName'), '/Azure/', variables('protectionContainer')[copyIndex()], '/', variables('protectedItem')[copyIndex()])]",
         "dependsOn": [
           "[resourceId('Microsoft.Compute/virtualMachines', variables('vmName'))]",
           "[resourceId('Microsoft.RecoveryServices/vaults', variables('recoveryserviceName'))]"
