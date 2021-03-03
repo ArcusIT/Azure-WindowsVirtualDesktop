@@ -68,7 +68,10 @@
         "bastion-subnet-name": "AzureBastionSubnet",
         "bastion-name": "Sub-bastion-01",
         "automationName": "[concat(variables('upcase_ka'),'-Automation-01')]",
-        "workspaceName": "[concat(variables('upcase_ka'),'LogAnalytics-Workspace-01')]"
+        "workspaceName": "[concat(variables('upcase_ka'),'-LogAnalytics-Workspace-01')]",
+        "recoveryserviceName": "[concat(variables('upcase_ka'),'-RS-01')]",
+        "policyName": "DefaultBackupPolicy",
+        "backupTime": "03:00"
     },
     "resources": [
       {
@@ -379,6 +382,82 @@
                     }
                 }
             ]
+        }
+      },
+      {
+        "type": "Microsoft.RecoveryServices/vaults",
+        "apiVersion": "2020-02-02-preview",
+        "name": "[variables('recoveryserviceName')]",
+        "location": "[variables('location')]",
+        "properties": { },
+        "sku": {
+          "name": "RS0",
+          "tier": "Standard"
+        }
+      },
+      {
+        "apiVersion": "2016-06-01",
+        "name": "[concat(variables('recoveryserviceName'), '/', variables('policyName'))]",
+        "type": "Microsoft.RecoveryServices/vaults/backupPolicies",
+        "dependsOn": [
+          "[concat('Microsoft.RecoveryServices/vaults/', variables('recoveryserviceName'))]"
+        ],
+        "location": "[variables('location')]",
+        "properties": {
+          "backupManagementType": "AzureIaasVM",
+          "instantRpRetentionRangeInDays": "2",
+          "schedulePolicy": {
+            "scheduleRunFrequency": "Daily",
+            "scheduleRunDays": null,
+            "scheduleRunTimes": "[variables('backupTime')]",
+            "schedulePolicyType": "SimpleSchedulePolicy"
+          },
+          "retentionPolicy": {
+            "dailySchedule": {
+              "retentionTimes": "[variables('backupTime')]",
+              "retentionDuration": {
+                "count": "30",
+                "durationType": "Days"
+              }
+            },
+            "monthlySchedule": {
+              "retentionScheduleFormatType": "Daily",
+              "retentionScheduleDaily": {
+                "daysOfTheMonth": [
+                  {
+                    "date": 1,
+                    "isLast": false
+                  }
+                ]
+              },
+              "retentionScheduleWeekly": null,
+              "retentionTimes": "[variables('backupTime')]",
+              "retentionDuration": {
+                "count": "12",
+                "durationType": "Months"
+              }
+            },
+            "yearlySchedule": {
+              "retentionScheduleFormatType": "Daily",
+              "monthsOfYear": "January",
+              "retentionScheduleDaily": {
+                "daysOfTheMonth": [
+                  {
+                    "date": 1,
+                    "isLast": false
+                  }
+                ]
+              },
+              "retentionScheduleWeekly": null,
+              "retentionTimes": "[variables('backupTime')]",
+              "retentionDuration": {
+                "count": "10",
+                "durationType": "Years"
+              }
+            },
+            "retentionPolicyType": "LongTermRetentionPolicy"
+          },
+          "timeZone": "W. Europe Standard Time"
         }
       }
     ]
