@@ -64,9 +64,39 @@
         "subnet2Name": "Sub-web-01",
         "public-ip-address-name": "[concat(variables('upcase_ka'),'-pip')]",
         "bastion-subnet-name": "AzureBastionSubnet",
-        "bastion-name": "Sub-bastion-01"
+        "bastion-name": "Sub-bastion-01",
+        "automationName": "[concat(variables('upcase_ka'),'-Automation-01')]",
+        "workspaceName": "[concat(variables('upcase_ka'),'LogAnalytics-Workspace-01')]"
     },
     "resources": [
+      {
+        "type": "Microsoft.Automation/automationAccounts",
+        "apiVersion": "2015-10-31",
+        "name": "[variables('automationName')]",
+        "location": "[variables('location')]",
+        "properties": {
+            "sku": {
+                "name": "Basic"
+            }
+        }
+      },
+      {
+        "type": "microsoft.operationalinsights/workspaces",
+        "apiVersion": "2020-10-01",
+        "name": "[variables('workspaceName')]",
+        "location": "[variables('location')]",
+        "properties": {
+            "sku": {
+                "name": "pergb2018"
+            },
+            "retentionInDays": 30,
+            "workspaceCapping": {
+                "dailyQuotaGb": -1
+            },
+            "publicNetworkAccessForIngestion": "Enabled",
+            "publicNetworkAccessForQuery": "Enabled"
+        }
+      },
       {
         "type": "Microsoft.Network/virtualNetworks",
         "apiVersion": "2020-05-01",
