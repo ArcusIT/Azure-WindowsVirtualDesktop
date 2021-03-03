@@ -29,6 +29,14 @@
         "type": "string",
         "defaultValue": "10.0.0.0/24"
       },
+      "VmAdds01Ip": {
+        "type": "string",
+        "defaultValue": "10.0.0.11"
+      },
+      "VmAdds02Ip": {
+        "type": "string",
+        "defaultValue": "10.0.0.12"
+      },     
       "WebSubnet": {
         "type": "string",
         "defaultValue": "10.0.1.0/24"
@@ -42,12 +50,14 @@
         "upcase_ka": "[toUpper(parameters('KlantAfkorting'))]",
         "lwcase_ka": "[toLower(parameters('KlantAfkorting'))]",
         "location": "[resourceGroup().location]",
-        "vmSize": "Standard_D2_v3",
+        "vmSize": "Standard_B2ms",
         "vmName": "[concat(variables('upcase_ka'),'-ADDS01')]",
-        "nicName": "[concat(variables('upcase_ka'),'-ADDS01-NIC-01')]",
-        "vmIP": "10.0.0.11",
+        "vmName2": "[concat(variables('upcase_ka'),'-ADDS02')]",
+        "nicName": "[concat(variables('vmName'),'-NIC-01')]",
+        "nicName2": "[concat(variables('vmName2'),'-NIC-01')]",
         "OSVersion": "2019-Datacenter",
         "storageAccountName": "[concat(variables('lwcase_ka'),'adds01storage')]",
+        "storageAccountName2": "[concat(variables('lwcase_ka'),'adds02storage')]",
         "storageAccountType": "Standard_LRS",
         "vnetName": "[concat(variables('upcase_ka'),'-prod-vNet')]",
         "subnet1Name": "Sub-prod-01",
@@ -123,6 +133,17 @@
         "properties": {}
       },
       {
+        "type": "Microsoft.Storage/storageAccounts",
+        "apiVersion": "2019-06-01",
+        "name": "[variables('storageAccountName2')]",
+        "location": "[variables('location')]",
+        "sku": {
+          "name": "[variables('storageAccountType')]"
+        },
+        "kind": "Storage",
+        "properties": {}
+      },
+      {
         "apiVersion": "2020-05-01",
         "type": "Microsoft.Network/publicIpAddresses",
         "name": "[variables('public-ip-address-name')]",
@@ -147,7 +168,32 @@
             {
               "name": "ipconfig1",
               "properties": {
-                "privateIPAddress": "[variables('vmIP')]",
+                "privateIPAddress": "[parameters('VmAdds01Ip')]",
+                "privateIPAllocationMethod": "Static",
+                "subnet": {
+                  "id": "[concat(resourceId('Microsoft.Network/virtualNetworks',variables('vnetName')),'/subnets/', variables('subnet1Name'))]"
+                },
+                "primary": true,
+                "privateIPAddressVersion": "IPv4"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "type": "Microsoft.Network/networkInterfaces",
+        "apiVersion": "2020-06-01",
+        "name": "[variables('nicName2')]",
+        "location": "[variables('location')]",
+        "dependsOn": [
+          "[resourceId('Microsoft.Network/virtualNetworks', variables('vnetName'))]"
+        ],
+        "properties": {
+          "ipConfigurations": [
+            {
+              "name": "ipconfig1",
+              "properties": {
+                "privateIPAddress": "[parameters('VmAdds02Ip')]",
                 "privateIPAllocationMethod": "Static",
                 "subnet": {
                   "id": "[concat(resourceId('Microsoft.Network/virtualNetworks',variables('vnetName')),'/subnets/', variables('subnet1Name'))]"
@@ -202,6 +248,53 @@
             "bootDiagnostics": {
               "enabled": true,
               "storageUri": "[reference(resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))).primaryEndpoints.blob]"
+            }
+          }
+        }
+      },
+      {
+        "type": "Microsoft.Compute/virtualMachines",
+        "apiVersion": "2020-06-01",
+        "name": "[variables('vmName2')]",
+        "location": "[variables('location')]",
+        "dependsOn": [
+          "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName2'))]",
+          "[resourceId('Microsoft.Network/networkInterfaces', variables('nicName2'))]"
+        ],
+        "properties": {
+          "hardwareProfile": {
+            "vmSize": "[variables('vmSize')]"
+          },
+          "osProfile": {
+            "computerName": "[variables('vmName2')]",
+            "adminUsername": "[parameters('adminUsername')]",
+            "adminPassword": "[parameters('adminPassword')]"
+          },
+          "storageProfile": {
+            "imageReference": {
+              "publisher": "MicrosoftWindowsServer",
+              "offer": "WindowsServer",
+              "sku": "[variables('OSVersion')]",
+              "version": "latest"
+            },
+            "osDisk": {
+              "createOption": "FromImage",
+              "managedDisk": {
+                "storageAccountType": "StandardSSD_LRS"
+              }
+            }
+          },
+          "networkProfile": {
+            "networkInterfaces": [
+              {
+                "id": "[resourceId('Microsoft.Network/networkInterfaces', variables('nicName2'))]"
+              }
+            ]
+          },
+          "diagnosticsProfile": {
+            "bootDiagnostics": {
+              "enabled": true,
+              "storageUri": "[reference(resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName2'))).primaryEndpoints.blob]"
             }
           }
         }
