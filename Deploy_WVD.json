@@ -47,7 +47,7 @@
         "nicName": "[concat(variables('upcase_ka'),'-ADDS01-NIC-01')]",
         "vmIP": "10.0.0.11",
         "OSVersion": "2019-Datacenter",
-        "storageAccountName": "[concat(variables('lwcase_ka'),'-adds-sa-01')]",
+        "storageAccountName": "[concat(variables('lwcase_ka'),'adds01storage')]",
         "storageAccountType": "Standard_LRS",
         "vnetName": "[concat(variables('upcase_ka'),'-prod-vNet')]",
         "subnet1Name": "Sub-prod-01",
