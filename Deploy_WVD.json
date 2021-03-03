@@ -71,7 +71,9 @@
         "workspaceName": "[concat(variables('upcase_ka'),'-LogAnalytics-Workspace-01')]",
         "recoveryserviceName": "[concat(variables('upcase_ka'),'-RS-01')]",
         "policyName": "DefaultBackupPolicy",
-        "backupTime": "03:00"
+        "backupTime": [
+          "03:00"
+        ]
     },
     "resources": [
       {
@@ -439,7 +441,9 @@
             },
             "yearlySchedule": {
               "retentionScheduleFormatType": "Daily",
-              "monthsOfYear": "January",
+              "monthsOfYear": [
+                "January"
+              ],
               "retentionScheduleDaily": {
                 "daysOfTheMonth": [
                   {
