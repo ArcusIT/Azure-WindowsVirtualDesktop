@@ -74,10 +74,14 @@
         "backupTime": [
           "03:00"
         ],
-        "protectionContainer": "[concat('iaasvmcontainer;iaasvmcontainerv2;', resourceGroup().name, ';', variables('vmName'))]",
-        "protectedItem": "[concat('vm;iaasvmcontainerv2;', resourceGroup().name, ';', variables('vmName'))]",
-        "protectionContainer2": "[concat('iaasvmcontainer;iaasvmcontainerv2;', resourceGroup().name, ';', variables('vmName2'))]",
-        "protectedItem2": "[concat('vm;iaasvmcontainerv2;', resourceGroup().name, ';', variables('vmName2'))]"
+        "protectionContainer": [
+          "[concat('iaasvmcontainer;iaasvmcontainerv2;', resourceGroup().name, ';', variables('vmName'))]",
+          "[concat('iaasvmcontainer;iaasvmcontainerv2;', resourceGroup().name, ';', variables('vmName2'))]"
+        ],
+        "protectedItem": [
+          "[concat('vm;iaasvmcontainerv2;', resourceGroup().name, ';', variables('vmName'))]",
+          "[concat('vm;iaasvmcontainerv2;', resourceGroup().name, ';', variables('vmName2'))]"
+        ]
     },
     "resources": [
       {
@@ -480,20 +484,6 @@
           "protectedItemType": "Microsoft.Compute/virtualMachines",
           "policyId": "[resourceId('Microsoft.RecoveryServices/vaults/backupPolicies', variables('recoveryserviceName'), variables('policyName'))]",
           "sourceResourceId": "[resourceId('Microsoft.Compute/virtualMachines', variables('vmName'))]"
-        }
-      },
-      {
-        "type": "Microsoft.RecoveryServices/vaults/backupFabrics/protectionContainers/protectedItems",
-        "apiVersion": "2020-02-02",
-        "name": "[concat(variables('recoveryserviceName'), '/Azure/', variables('protectionContainer2'), '/', variables('protectedItem2'))]",
-        "dependsOn": [
-          "[resourceId('Microsoft.Compute/virtualMachines', variables('vmName2'))]",
-          "[resourceId('Microsoft.RecoveryServices/vaults', variables('recoveryserviceName'))]"
-        ],
-        "properties": {
-          "protectedItemType": "Microsoft.Compute/virtualMachines",
-          "policyId": "[resourceId('Microsoft.RecoveryServices/vaults/backupPolicies', variables('recoveryserviceName'), variables('policyName'))]",
-          "sourceResourceId": "[resourceId('Microsoft.Compute/virtualMachines', variables('vmName2'))]"
         }
       }
     ]
