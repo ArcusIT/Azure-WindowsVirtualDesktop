@@ -58,13 +58,12 @@
         "nicName": "[concat(variables('vmName'),'-NIC-01')]",
         "nicName2": "[concat(variables('vmName2'),'-NIC-01')]",
         "OSVersion": "2019-Datacenter",
-        "storageAccountName": "[concat(variables('lwcase_ka'),'adds01storage')]",
-        "storageAccountName2": "[concat(variables('lwcase_ka'),'adds02storage')]",
+        "storageAccountName": "[concat(variables('lwcase_ka'),'diagnostics')]",
         "storageAccountType": "Standard_LRS",
         "vnetName": "[concat(variables('upcase_ka'),'-prod-vNet')]",
         "subnet1Name": "Sub-prod-01",
         "subnet2Name": "Sub-web-01",
-        "public-ip-address-name": "[concat(variables('upcase_ka'),'-pip')]",
+        "public-ip-address-name": "[concat(variables('upcase_ka'),'-pip-bastion')]",
         "bastion-subnet-name": "AzureBastionSubnet",
         "bastion-name": "Sub-bastion-01",
         "automationName": "[concat(variables('upcase_ka'),'-Automation-01')]",
@@ -206,17 +205,6 @@
         "properties": {}
       },
       {
-        "type": "Microsoft.Storage/storageAccounts",
-        "apiVersion": "2019-06-01",
-        "name": "[variables('storageAccountName2')]",
-        "location": "[variables('location')]",
-        "sku": {
-          "name": "[variables('storageAccountType')]"
-        },
-        "kind": "Storage",
-        "properties": {}
-      },
-      {
         "apiVersion": "2020-05-01",
         "type": "Microsoft.Network/publicIpAddresses",
         "name": "[variables('public-ip-address-name')]",
@@ -331,7 +319,7 @@
         "name": "[variables('vmName2')]",
         "location": "[variables('location')]",
         "dependsOn": [
-          "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName2'))]",
+          "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]",
           "[resourceId('Microsoft.Network/networkInterfaces', variables('nicName2'))]"
         ],
         "properties": {
@@ -367,7 +355,7 @@
           "diagnosticsProfile": {
             "bootDiagnostics": {
               "enabled": true,
-              "storageUri": "[reference(resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName2'))).primaryEndpoints.blob]"
+              "storageUri": "[reference(resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))).primaryEndpoints.blob]"
             }
           }
         }
