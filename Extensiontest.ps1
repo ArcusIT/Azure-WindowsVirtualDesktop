@@ -1,1 +1,2 @@
-mkdir c:\arcus2
+$param1=$args[0]
+mkdir "c:\$param1"

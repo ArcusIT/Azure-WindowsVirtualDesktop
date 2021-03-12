@@ -4,6 +4,9 @@
     "parameters": {
       "vmName": {
         "type": "string"
+      },
+      "folderName": {
+        "type": "string"
       }
     },
     "variables": {
@@ -24,7 +27,7 @@
               "autoUpgradeMinorVersion": true,
               "settings": {
                 "fileUris": [
-                    "https://raw.githubusercontent.com/ArcusIT/Azure-WindowsVirtualDesktop/main/Extensiontest.ps1"
+                    "[concat('https://raw.githubusercontent.com/ArcusIT/Azure-WindowsVirtualDesktop/main/Extensiontest.ps1 ', variables('folderName'))]"
                 ]
               },
               "protectedSettings": {
