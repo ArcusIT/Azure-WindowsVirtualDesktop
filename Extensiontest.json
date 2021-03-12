@@ -24,12 +24,11 @@
               "autoUpgradeMinorVersion": true,
               "settings": {
                 "fileUris": [
-                    "script location"
-                ],
-                "timestamp":123456789
+                    "https://raw.githubusercontent.com/ArcusIT/Azure-WindowsVirtualDesktop/main/Extensiontest.ps1"
+                ]
               },
               "protectedSettings": {
-                  "commandToExecute": "powershell mkdir \"c:\\arcus\""
+                  "commandToExecute": "powershell -ExecutionPolicy Unrestricted -File Extensiontest.ps1"
               }
           }
       }
