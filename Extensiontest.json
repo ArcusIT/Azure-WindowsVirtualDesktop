@@ -2,323 +2,36 @@
     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
-      "KlantAfkorting": {
-        "minLength": 2,
-        "maxLength": 3,
+      "vmName": {
         "type": "string"
-      },
-      "adminUsername": {
-        "type": "string",
-        "defaultValue": "arcusadmin",
-        "metadata": {
-          "description": "Username for the Virtual Machine."
-        }
-      },
-      "adminPassword": {
-        "type": "securestring",
-        "minLength": 12,
-        "metadata": {
-          "description": "Password for the Virtual Machine."
-        }
-      },
-      "vnetAddressPrefix": {
-        "type": "string",
-        "defaultValue": "10.0.0.0/16"
-      },
-      "ProdSubnet": {
-        "type": "string",
-        "defaultValue": "10.0.0.0/24"
-      },
-      "VmAdds01Ip": {
-        "type": "string",
-        "defaultValue": "10.0.0.11"
-      },
-      "VmAdds02Ip": {
-        "type": "string",
-        "defaultValue": "10.0.0.12"
-      },     
-      "WebSubnet": {
-        "type": "string",
-        "defaultValue": "10.0.1.0/24"
-      },
-      "BastionSubnet": {
-        "type": "string",
-        "defaultValue": "10.0.3.0/24"
       }
     },
     "variables": {
-        "upcase_ka": "[toUpper(parameters('KlantAfkorting'))]",
-        "lwcase_ka": "[toLower(parameters('KlantAfkorting'))]",
-        "nsgName": "Nsg-sub-prod-01",
-        "nsgName2": "Nsg-sub-web-01",
-        "location": "[resourceGroup().location]",
-        "vmSize": "Standard_B2ms",
-        "vmName": "[concat(variables('upcase_ka'),'-ADDS01')]",
-        "vmName2": "[concat(variables('upcase_ka'),'-ADDS02')]",
-        "nicName": "[concat(variables('vmName'),'-NIC-01')]",
-        "nicName2": "[concat(variables('vmName2'),'-NIC-01')]",
-        "OSVersion": "2019-Datacenter",
-        "storageAccountName": "[concat(variables('lwcase_ka'),'diagnostics')]",
-        "storageAccountType": "Standard_LRS",
-        "vnetName": "[concat(variables('upcase_ka'),'-prod-vNet')]",
-        "subnet1Name": "Sub-prod-01",
-        "subnet2Name": "Sub-web-01",
-        "public-ip-address-name": "[concat(variables('upcase_ka'),'-pip-bastion')]",
-        "bastion-subnet-name": "AzureBastionSubnet",
-        "bastion-name": "Sub-bastion-01",
-        "automationName": "[concat(variables('upcase_ka'),'-Automation-01')]",
-        "workspaceName": "[concat(variables('upcase_ka'),'-LogAnalytics-Workspace-01')]",
-        "recoveryserviceName": "[concat(variables('upcase_ka'),'-RS-01')]",
-        "policyName": "DefaultBackupPolicy",
-        "backupTime": [
-          "03:00"
-        ],
-        "protectionContainer": [
-          "[concat('iaasvmcontainer;iaasvmcontainerv2;', resourceGroup().name, ';', variables('vmName'))]",
-          "[concat('iaasvmcontainer;iaasvmcontainerv2;', resourceGroup().name, ';', variables('vmName2'))]"
-        ],
-        "protectedItem": [
-          "[concat('vm;iaasvmcontainerv2;', resourceGroup().name, ';', variables('vmName'))]",
-          "[concat('vm;iaasvmcontainerv2;', resourceGroup().name, ';', variables('vmName2'))]"
-        ],
-        "protectedSourceResourceIds": [
-          "[resourceId('Microsoft.Compute/virtualMachines', variables('vmName'))]",
-          "[resourceId('Microsoft.Compute/virtualMachines', variables('vmName2'))]"
-        ]
     },
     "resources": [
       {
-          "type": "Microsoft.Network/networkSecurityGroups",
-          "apiVersion": "2020-05-01",
-          "name": "[variables('nsgName')]",
-          "location": "[variables('location')]",
+          "apiVersion": "2018-06-01",
+          "type": "Microsoft.Compute/virtualMachines/extensions",
+          "name": "[concat(parameters('vmName'),'/config-app')]",
+          "location": "[resourceGroup().location]",
+          "tags": {
+              "displayName": "config-app"
+          },
           "properties": {
-              "securityRules": []
+              "publisher": "Microsoft.Compute",
+              "type": "CustomScriptExtension",
+              "typeHandlerVersion": "1.10",
+              "autoUpgradeMinorVersion": true,
+              "settings": {
+                "fileUris": [
+                    "script location"
+                ],
+                "timestamp":123456789
+              },
+              "protectedSettings": {
+                  "commandToExecute": "powershell mkdir \"c:\\arcus\""
+              }
           }
-      },
-      {
-          "type": "Microsoft.Network/networkSecurityGroups",
-          "apiVersion": "2020-05-01",
-          "name": "[variables('nsgName2')]",
-          "location": "[variables('location')]",
-          "properties": {
-              "securityRules": []
-          }
-      },
-      {
-        "type": "Microsoft.Network/virtualNetworks",
-        "apiVersion": "2020-05-01",
-        "name": "[variables('vnetName')]",
-        "location": "[variables('location')]",
-        "properties": {
-          "addressSpace": {
-            "addressPrefixes": [
-              "[parameters('vnetAddressPrefix')]"
-            ]
-          }
-        },
-        "resources": [
-          {
-            "type": "subnets",
-            "apiVersion": "2020-05-01",
-            "location": "[variables('location')]",
-            "name": "[variables('subnet1Name')]",
-            "dependsOn": [
-              "[variables('vnetName')]"
-            ],
-            "properties": {
-              "addressPrefix": "[parameters('ProdSubnet')]",
-              "networkSecurityGroup": {
-                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgName'))]"
-              }
-            }
-          },
-          {
-            "type": "subnets",
-            "apiVersion": "2020-05-01",
-            "location": "[variables('location')]",
-            "name": "[variables('subnet2Name')]",
-            "dependsOn": [
-              "[variables('vnetName')]",
-              "[variables('subnet1Name')]"
-            ],
-            "properties": {
-              "addressPrefix": "[parameters('WebSubnet')]",
-              "networkSecurityGroup": {
-                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgName2'))]"
-              }
-            }
-          },
-          {       
-            "type": "subnets",
-            "apiVersion": "2020-05-01",
-            "location": "[variables('location')]",
-            "name": "[variables('bastion-subnet-name')]",
-            "dependsOn": [
-              "[variables('vnetName')]",
-              "[variables('subnet1Name')]",
-              "[variables('subnet2Name')]"
-            ],
-            "properties": {
-                "addressPrefix": "[parameters('BastionSubnet')]"
-            }
-          }
-        ]
-      },
-      {
-        "type": "Microsoft.Storage/storageAccounts",
-        "apiVersion": "2019-06-01",
-        "name": "[variables('storageAccountName')]",
-        "location": "[variables('location')]",
-        "sku": {
-          "name": "[variables('storageAccountType')]"
-        },
-        "kind": "Storage",
-        "properties": {}
-      },
-      {
-        "type": "Microsoft.Network/networkInterfaces",
-        "apiVersion": "2020-06-01",
-        "name": "[variables('nicName')]",
-        "location": "[variables('location')]",
-        "dependsOn": [
-          "[resourceId('Microsoft.Network/virtualNetworks', variables('vnetName'))]"
-        ],
-        "properties": {
-          "ipConfigurations": [
-            {
-              "name": "ipconfig1",
-              "properties": {
-                "privateIPAddress": "[parameters('VmAdds01Ip')]",
-                "privateIPAllocationMethod": "Static",
-                "subnet": {
-                  "id": "[concat(resourceId('Microsoft.Network/virtualNetworks',variables('vnetName')),'/subnets/', variables('subnet1Name'))]"
-                },
-                "primary": true,
-                "privateIPAddressVersion": "IPv4"
-              }
-            }
-          ]
-        }
-      },
-      {
-        "type": "Microsoft.Network/networkInterfaces",
-        "apiVersion": "2020-06-01",
-        "name": "[variables('nicName2')]",
-        "location": "[variables('location')]",
-        "dependsOn": [
-          "[resourceId('Microsoft.Network/virtualNetworks', variables('vnetName'))]"
-        ],
-        "properties": {
-          "ipConfigurations": [
-            {
-              "name": "ipconfig1",
-              "properties": {
-                "privateIPAddress": "[parameters('VmAdds02Ip')]",
-                "privateIPAllocationMethod": "Static",
-                "subnet": {
-                  "id": "[concat(resourceId('Microsoft.Network/virtualNetworks',variables('vnetName')),'/subnets/', variables('subnet1Name'))]"
-                },
-                "primary": true,
-                "privateIPAddressVersion": "IPv4"
-              }
-            }
-          ]
-        }
-      },
-      {
-        "type": "Microsoft.Compute/virtualMachines",
-        "apiVersion": "2020-06-01",
-        "name": "[variables('vmName')]",
-        "location": "[variables('location')]",
-        "dependsOn": [
-          "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]",
-          "[resourceId('Microsoft.Network/networkInterfaces', variables('nicName'))]"
-        ],
-        "properties": {
-          "hardwareProfile": {
-            "vmSize": "[variables('vmSize')]"
-          },
-          "osProfile": {
-            "computerName": "[variables('vmName')]",
-            "adminUsername": "[parameters('adminUsername')]",
-            "adminPassword": "[parameters('adminPassword')]"
-          },
-          "storageProfile": {
-            "imageReference": {
-              "publisher": "MicrosoftWindowsServer",
-              "offer": "WindowsServer",
-              "sku": "[variables('OSVersion')]",
-              "version": "latest"
-            },
-            "osDisk": {
-              "createOption": "FromImage",
-              "managedDisk": {
-                "storageAccountType": "StandardSSD_LRS"
-              }
-            }
-          },
-          "networkProfile": {
-            "networkInterfaces": [
-              {
-                "id": "[resourceId('Microsoft.Network/networkInterfaces', variables('nicName'))]"
-              }
-            ]
-          },
-          "diagnosticsProfile": {
-            "bootDiagnostics": {
-              "enabled": true,
-              "storageUri": "[reference(resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))).primaryEndpoints.blob]"
-            }
-          }
-        }
-      },
-      {
-        "type": "Microsoft.Compute/virtualMachines",
-        "apiVersion": "2020-06-01",
-        "name": "[variables('vmName2')]",
-        "location": "[variables('location')]",
-        "dependsOn": [
-          "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]",
-          "[resourceId('Microsoft.Network/networkInterfaces', variables('nicName2'))]"
-        ],
-        "properties": {
-          "hardwareProfile": {
-            "vmSize": "[variables('vmSize')]"
-          },
-          "osProfile": {
-            "computerName": "[variables('vmName2')]",
-            "adminUsername": "[parameters('adminUsername')]",
-            "adminPassword": "[parameters('adminPassword')]"
-          },
-          "storageProfile": {
-            "imageReference": {
-              "publisher": "MicrosoftWindowsServer",
-              "offer": "WindowsServer",
-              "sku": "[variables('OSVersion')]",
-              "version": "latest"
-            },
-            "osDisk": {
-              "createOption": "FromImage",
-              "managedDisk": {
-                "storageAccountType": "StandardSSD_LRS"
-              }
-            }
-          },
-          "networkProfile": {
-            "networkInterfaces": [
-              {
-                "id": "[resourceId('Microsoft.Network/networkInterfaces', variables('nicName2'))]"
-              }
-            ]
-          },
-          "diagnosticsProfile": {
-            "bootDiagnostics": {
-              "enabled": true,
-              "storageUri": "[reference(resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))).primaryEndpoints.blob]"
-            }
-          }
-        }
       }
     ]
-  }
+}
