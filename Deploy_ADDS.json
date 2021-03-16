@@ -21,7 +21,7 @@
         "type": "securestring",
         "minLength": 12
       },
-      "SafePassword": {
+      "SafeModePassword": {
         "type": "securestring",
         "minLength": 12
       }
@@ -50,13 +50,13 @@
                   "UserName": "[parameters('Username')]",
                   "Password": "PrivateSettingsRef:Password"
               },
-              "SafePassword": "PrivateSettingsRef:SafePassword"
+              "SafeModePassword": "PrivateSettingsRef:SafeModePassword"
             }
           },
           "protectedSettings": {
             "Items": {
                 "Password": "[parameters('Password')]",
-                "SafePassword": "[parameters('SafePassword')]"
+                "SafeModePassword": "[parameters('SafeModePassword')]"
             }
           }
         }
