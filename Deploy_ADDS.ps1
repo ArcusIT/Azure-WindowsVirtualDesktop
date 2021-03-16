@@ -4,7 +4,7 @@ Configuration ADDomain_NewForest_Config
     (
         [Parameter(Mandatory = $true)]
         [System.String]
-        $domainName    
+        $domainName,
 
         [Parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
