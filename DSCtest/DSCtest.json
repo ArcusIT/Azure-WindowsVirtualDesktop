@@ -1,0 +1,36 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+      "vmName": {
+        "type": "string",
+        "metadata": {
+          "description": "Name for the Virtual Machine"
+        }
+      }
+    },
+    "variables": {
+    },
+    "resources": [
+      {
+        "apiVersion": "2020-12-01",
+        "type": "Microsoft.Compute/virtualMachines/extensions",
+        "name": "[concat(parameters('vmName'),'/Microsoft.Powershell.DSC')]",
+        "location": "[resourceGroup().location]",
+        "properties": {
+          "publisher": "Microsoft.Powershell",
+          "type": "DSC",
+          "typeHandlerVersion": "2.26",
+          "autoUpgradeMinorVersion": true,
+          "forceUpdateTag": "1.1",
+          "settings": {
+            "modulesUrl": "https://github.com/Owen-Davies/Azure-VM-WMF-Speed-Test/raw/master/ExampleDSC.zip",
+            "wmfVersion": "latest",
+            "ConfigurationFunction": "DSCtest.ps1\\DSCtest"
+          }
+        }
+      }
+    ],
+    "outputs": {
+    }
+  }
