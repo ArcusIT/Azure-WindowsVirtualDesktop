@@ -20,10 +20,6 @@
       "Password": {
         "type": "securestring",
         "minLength": 12
-      },
-      "SafeModePassword": {
-        "type": "securestring",
-        "minLength": 12
       }
     },
     "variables": {
