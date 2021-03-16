@@ -49,14 +49,12 @@
               "Credential": {
                   "UserName": "[parameters('Username')]",
                   "Password": "PrivateSettingsRef:Password"
-              },
-              "SafeModePassword": "PrivateSettingsRef:SafeModePassword"
+              }
             }
           },
           "protectedSettings": {
             "Items": {
-                "Password": "[parameters('Password')]",
-                "SafeModePassword": "[parameters('SafeModePassword')]"
+                "Password": "[parameters('Password')]"
             }
           }
         }
