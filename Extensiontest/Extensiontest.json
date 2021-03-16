@@ -27,7 +27,7 @@
               "autoUpgradeMinorVersion": true,
               "settings": {
                 "fileUris": [
-                    "https://raw.githubusercontent.com/ArcusIT/Azure-WindowsVirtualDesktop/main/Extensiontest.ps1"
+                    "https://raw.githubusercontent.com/ArcusIT/Azure-WindowsVirtualDesktop/main/Extensiontest/Extensiontest.ps1"
                 ]
               },
               "protectedSettings": {

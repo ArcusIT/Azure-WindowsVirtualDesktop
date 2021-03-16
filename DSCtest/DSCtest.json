@@ -7,6 +7,12 @@
         "metadata": {
           "description": "Name for the Virtual Machine"
         }
+      },
+      "folderName": {
+        "type": "string",
+        "metadata": {
+          "description": "Name for the folder"
+        }
       }
     },
     "variables": {
@@ -24,9 +30,12 @@
           "autoUpgradeMinorVersion": true,
           "forceUpdateTag": "1.1",
           "settings": {
-            "modulesUrl": "https://github.com/Owen-Davies/Azure-VM-WMF-Speed-Test/raw/master/ExampleDSC.zip",
+            "modulesUrl": "https://github.com/ArcusIT/Azure-WindowsVirtualDesktop/blob/main/DSCtest/DSCtest.zip?raw=true",
             "wmfVersion": "latest",
-            "ConfigurationFunction": "DSCtest.ps1\\DSCtest"
+            "ConfigurationFunction": "DSCtest.ps1\\DSCtest",
+            "Properties": {
+              "folderName": "[parameters('folderName')]"
+            }
           }
         }
       }
