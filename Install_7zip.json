@@ -1,0 +1,36 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+      "vmName": {
+        "type": "string"
+      }
+    },
+    "variables": {
+    },
+    "resources": [
+      {
+          "apiVersion": "2018-06-01",
+          "type": "Microsoft.Compute/virtualMachines/extensions",
+          "name": "[concat(parameters('vmName'),'/config-app')]",
+          "location": "[resourceGroup().location]",
+          "tags": {
+              "displayName": "config-app"
+          },
+          "properties": {
+              "publisher": "Microsoft.Compute",
+              "type": "CustomScriptExtension",
+              "typeHandlerVersion": "1.10",
+              "autoUpgradeMinorVersion": true,
+              "settings": {
+                "fileUris": [
+                    "https://raw.githubusercontent.com/ArcusIT/Azure-WindowsVirtualDesktop/main/Install_7zip.ps1"
+                ]
+              },
+              "protectedSettings": {
+                  "commandToExecute": "powershell -ExecutionPolicy Unrestricted -File Install_7zip.ps1"
+              }
+          }
+      }
+    ]
+}
