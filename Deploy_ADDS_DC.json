@@ -1,0 +1,61 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+      "vmName": {
+        "type": "string",
+        "metadata": {
+          "description": "Name for the Virtual Machine"
+        }
+      },
+      "domainName": {
+        "type": "string",
+        "metadata": {
+          "description": "Name for the ADDS"
+        }
+      },
+      "Username": {
+        "type": "string"
+      },
+      "Password": {
+        "type": "securestring",
+        "minLength": 12
+      }
+    },
+    "variables": {
+    },
+    "resources": [
+      {
+        "apiVersion": "2020-12-01",
+        "type": "Microsoft.Compute/virtualMachines/extensions",
+        "name": "[concat(parameters('vmName'),'/Microsoft.Powershell.DSC')]",
+        "location": "[resourceGroup().location]",
+        "properties": {
+          "publisher": "Microsoft.Powershell",
+          "type": "DSC",
+          "typeHandlerVersion": "2.26",
+          "autoUpgradeMinorVersion": true,
+          "forceUpdateTag": "1.1",
+          "settings": {
+            "modulesUrl": "https://github.com/ArcusIT/Azure-WindowsVirtualDesktop/blob/main/Deploy_ADDS.zip?raw=true",
+            "wmfVersion": "latest",
+            "ConfigurationFunction": "Deploy_ADDS.ps1\\ADDomain_AddDomainControllerToDomain_Config",
+            "Properties": {
+              "domainName": "[parameters('domainName')]",
+              "Credential": {
+                  "UserName": "[parameters('Username')]",
+                  "Password": "PrivateSettingsRef:Password"
+              }
+            }
+          },
+          "protectedSettings": {
+            "Items": {
+                "Password": "[parameters('Password')]"
+            }
+          }
+        }
+      }
+    ],
+    "outputs": {
+    }
+  }
