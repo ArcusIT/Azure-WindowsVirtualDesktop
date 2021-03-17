@@ -1,0 +1,49 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+      "vnetName": {
+        "type": "string",
+        "metadata": {
+          "description": "Name for the Virtual network"
+        }
+      },
+      "dnsServers": {
+        "type": "array",
+        "defaultValue": ["10.1.0.4","10.1.0.7"],
+        "metadata": {
+          "description": "IP-address of DNS servers"
+        }
+      }
+    },
+    "variables": {
+    },
+    "resources": [
+    {
+        "type": "Microsoft.Network/virtualNetworks",
+        "name": "[parameters('vnetName')]",
+        "apiVersion": "2018-02-01",
+        "location": "[resourceGroup().location]",
+        "properties": {
+            "addressSpace": {
+                "addressPrefixes": [
+                    "10.1.0.0/24"
+                ]
+            },
+            "dhcpOptions": {
+                "dnsServers": "[parameters('dnsServers')]"
+            },
+            "subnets": [
+                {
+                    "name": "default",
+                    "properties": {
+                        "addressPrefix": "10.1.0.0/24"
+                    }
+                }
+            ]
+        }
+    }
+    ],
+    "outputs": {
+    }
+  }

@@ -15,7 +15,10 @@
         }
       },
       "Username": {
-        "type": "string"
+        "type": "string",
+        "metadata": {
+          "description": "Name of administrator DOMAINNAME\\username"
+        }
       },
       "Password": {
         "type": "securestring",
