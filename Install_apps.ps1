@@ -1,4 +1,14 @@
-$Installer7Zip = $env:TEMP + "\7z1900-x64.msi";
-Invoke-WebRequest "https://www.7-zip.org/a/7z1900-x64.msi" -OutFile $Installer7Zip;
-msiexec /i $Installer7Zip /qb;
-Remove-Item $Installer7Zip;
+#Install Chocolatey
+Set-ExecutionPolicy Bypass -Scope Process -Force
+Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
+
+#Assign Packages to Install
+$Packages = 'microsoft-edge',`
+            '7-zip'
+            
+#Install Packages
+ForEach ($PackageName in $Packages)
+{choco install $PackageName -y}
+
+#Reboot
+Restart-Computer
