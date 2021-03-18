@@ -12,10 +12,10 @@
       {
           "apiVersion": "2017-12-01",
           "type": "Microsoft.Compute/virtualMachines/extensions",
-          "name": "[concat(parameters('vmName'),'/InstallApps')]",
+          "name": "[concat(parameters('vmName'),'/config-app')]",
           "location": "[resourceGroup().location]",
           "tags": {
-              "displayName": "Install Apps"
+              "displayName": "config-app"
           },
           "properties": {
               "publisher": "Microsoft.Compute",

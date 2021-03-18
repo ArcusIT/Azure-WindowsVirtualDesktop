@@ -5,7 +5,7 @@ Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://cho
 
 #Assign Packages to Install
 $Packages = 'microsoft-edge',`
-            '7-zip'
+            '7zip'
 
 #Install Packages
 ForEach ($PackageName in $Packages)
