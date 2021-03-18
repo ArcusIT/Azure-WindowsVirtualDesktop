@@ -10,25 +10,23 @@
     },
     "resources": [
       {
-          "apiVersion": "2018-06-01",
+          "apiVersion": "2017-12-01",
           "type": "Microsoft.Compute/virtualMachines/extensions",
-          "name": "[concat(parameters('vmName'),'/config-app')]",
+          "name": "[concat(parameters('vmName'),'/InstallApps')]",
           "location": "[resourceGroup().location]",
           "tags": {
-              "displayName": "config-app"
+              "displayName": "Install Apps"
           },
           "properties": {
               "publisher": "Microsoft.Compute",
               "type": "CustomScriptExtension",
-              "typeHandlerVersion": "1.10",
+              "typeHandlerVersion": "1.4",
               "autoUpgradeMinorVersion": true,
               "settings": {
                 "fileUris": [
                     "https://raw.githubusercontent.com/ArcusIT/Azure-WindowsVirtualDesktop/main/Install_apps.ps1"
-                ]
-              },
-              "protectedSettings": {
-                  "commandToExecute": "powershell -ExecutionPolicy Unrestricted -File Install_apps.ps1"
+                ],           
+                "commandToExecute": "powershell -ExecutionPolicy Unrestricted -File Install_apps.ps1"
               }
           }
       }
