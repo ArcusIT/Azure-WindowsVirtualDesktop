@@ -22,7 +22,7 @@
           "type": "DSC",
           "typeHandlerVersion": "2.26",
           "autoUpgradeMinorVersion": true,
-          "forceUpdateTag": "1.1",
+          "forceUpdateTag": "1.2",
           "settings": {
             "modulesUrl": "https://github.com/ArcusIT/Azure-WindowsVirtualDesktop/blob/main/Deploy_Ydentic.zip?raw=true",
             "wmfVersion": "latest",
