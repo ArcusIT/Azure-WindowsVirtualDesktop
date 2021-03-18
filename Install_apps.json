@@ -24,11 +24,11 @@
               "autoUpgradeMinorVersion": true,
               "settings": {
                 "fileUris": [
-                    "https://raw.githubusercontent.com/ArcusIT/Azure-WindowsVirtualDesktop/main/Install_7zip.ps1"
+                    "https://raw.githubusercontent.com/ArcusIT/Azure-WindowsVirtualDesktop/main/Install_apps.ps1"
                 ]
               },
               "protectedSettings": {
-                  "commandToExecute": "powershell -ExecutionPolicy Unrestricted -File Install_7zip.ps1"
+                  "commandToExecute": "powershell -ExecutionPolicy Unrestricted -File Install_apps.ps1"
               }
           }
       }
