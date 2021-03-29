@@ -282,7 +282,10 @@
           "osProfile": {
             "computerName": "[variables('vmName')]",
             "adminUsername": "[parameters('adminUsername')]",
-            "adminPassword": "[parameters('adminPassword')]"
+            "adminPassword": "[parameters('adminPassword')]",
+            "windowsConfiguration": {
+              "timeZone": "W. Europe Standard Time"
+            }
           },
           "storageProfile": {
             "imageReference": {
@@ -329,7 +332,10 @@
           "osProfile": {
             "computerName": "[variables('vmName2')]",
             "adminUsername": "[parameters('adminUsername')]",
-            "adminPassword": "[parameters('adminPassword')]"
+            "adminPassword": "[parameters('adminPassword')]",
+            "windowsConfiguration": {
+              "timeZone": "W. Europe Standard Time"
+            }
           },
           "storageProfile": {
             "imageReference": {
