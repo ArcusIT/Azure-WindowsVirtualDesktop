@@ -314,32 +314,7 @@
               "storageUri": "[reference(resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))).primaryEndpoints.blob]"
             }
           }
-        },
-        "resources": [
-          {
-              "apiVersion": "2018-06-01",
-              "type": "extensions",
-              "name": "setregionalsettings",
-              "location": "[resourceGroup().location]",
-              "dependsOn": [
-                        "[variables('vmName')]"
-              ],
-              "properties": {
-                  "publisher": "Microsoft.Compute",
-                  "type": "CustomScriptExtension",
-                  "typeHandlerVersion": "1.0",
-                  "autoUpgradeMinorVersion": true,
-                  "settings": {
-                    "fileUris": [
-                        "https://raw.githubusercontent.com/ArcusIT/Azure-WindowsVirtualDesktop/main/Set_regionalsettings.ps1"
-                    ]
-                  },
-                  "protectedSettings": {
-                      "commandToExecute": "powershell -ExecutionPolicy Unrestricted -File Set_regionalsettings.ps1 176 'nl-NL'"
-                  }
-              }
-          }
-        ]
+        }
       },
       {
         "type": "Microsoft.Compute/virtualMachines",
