@@ -1,0 +1,30 @@
+#region Start logging
+if (-not (New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {   
+    Write-warning "Het script starten als administrator"  
+    $arguments = "& '" + $myinvocation.mycommand.definition + "'"
+    Start-Process powershell -Verb runAs -ArgumentList $arguments
+    Break
+}
+
+try {
+    Write-host "Importeren module PSFramework..." -ForegroundColor Green
+    Import-module PSFramework -ErrorAction Stop
+    Write-PSFMessage -Message "Start logging" -level verbose
+} Catch {
+    Write-host "Module niet gevonden. Probeer de module te installeren..." -ForegroundColor Green
+    Write-warning "Er kunnen meldingen komen om Nuget te installeren en/of je uit onbetrouwbare bronnen wilt installeren. Kies bij beide voor ja..."
+    install-module -name PSFramework -ErrorAction Stop
+    Try {
+        import-module PSFramework -ErrorAction Stop
+        Write-PSFMessage -Message "Start logging" -level verbose
+        Write-PSFMessage -Message "Module PSFramework geïnstalleerd" -level host
+    } Catch {
+        Write-host "Kan module PSFramework niet importeren...Bestaat de module wel? Installeer de module handmatig..." -ForegroundColor Red -ErrorAction Stop
+        Pause
+        Exit
+    }
+}
+#endregion Start logging
+
+Write-host "Dit is een test"
+Pause
