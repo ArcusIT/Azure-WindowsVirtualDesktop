@@ -1,8 +1,8 @@
+Import-Module PowerShellGet
+
 #region Start logging
 if (-not (New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {   
     Write-warning "Het script starten als administrator"  
-    $arguments = "& '" + $myinvocation.mycommand.definition + "'"
-    Start-Process powershell -Verb runAs -ArgumentList $arguments
     Break
 }
 
@@ -25,6 +25,3 @@ try {
     }
 }
 #endregion Start logging
-
-Write-host "Dit is een test"
-Pause
