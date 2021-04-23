@@ -108,7 +108,7 @@ $ResourceGroupLocation = "westeurope"
 #endregion Variables
 
 Start-AzConnection
-#Start-CreateResourceGroup
+Start-CreateResourceGroup
 Start-Deployment -TemplateUri "https://raw.githubusercontent.com/ArcusIT/Azure-WindowsVirtualDesktop/main/Deploy_baseline.json"
 Pause
 

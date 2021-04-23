@@ -287,7 +287,8 @@
         "location": "[variables('location')]",
         "dependsOn": [
           "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]",
-          "[resourceId('Microsoft.Network/networkInterfaces', variables('nicName'))]"
+          "[resourceId('Microsoft.Network/networkInterfaces', variables('nicName'))]",
+          "[resourceId('Microsoft.Compute/availabilitySets', variables('availabilitySetName'))]"
         ],
         "properties": {
           "hardwareProfile": {
@@ -340,7 +341,8 @@
         "location": "[variables('location')]",
         "dependsOn": [
           "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]",
-          "[resourceId('Microsoft.Network/networkInterfaces', variables('nicName2'))]"
+          "[resourceId('Microsoft.Network/networkInterfaces', variables('nicName2'))]",
+          "[resourceId('Microsoft.Compute/availabilitySets', variables('availabilitySetName'))]"
         ],
         "properties": {
           "hardwareProfile": {
