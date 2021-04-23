@@ -4,7 +4,7 @@
     "parameters": {
       "KlantAfkorting": {
         "minLength": 2,
-        "maxLength": 3,
+        "maxLength": 4,
         "type": "string"
       },
       "adminUsername": {
@@ -49,8 +49,8 @@
     "variables": {
         "upcase_ka": "[toUpper(parameters('KlantAfkorting'))]",
         "lwcase_ka": "[toLower(parameters('KlantAfkorting'))]",
-        "nsgName": "Nsg-sub-prod-01",
-        "nsgName2": "Nsg-sub-web-01",
+        "nsgName": "[concat('NSG-',variables('subnet1Name'))]",
+        "nsgName2": "[concat('NSG-',variables('subnet2Name'))]",
         "location": "[resourceGroup().location]",
         "vmSize": "Standard_B2ms",
         "vmName": "[concat(variables('upcase_ka'),'-ADDS01')]",
@@ -60,15 +60,15 @@
         "OSVersion": "2019-Datacenter",
         "storageAccountName": "[concat(variables('lwcase_ka'),'diagnostics')]",
         "storageAccountType": "Standard_LRS",
-        "vnetName": "[concat(variables('upcase_ka'),'-prod-vNet')]",
-        "subnet1Name": "Sub-prod-01",
-        "subnet2Name": "Sub-web-01",
-        "public-ip-address-name": "[concat(variables('upcase_ka'),'-pip-bastion')]",
+        "vnetName": "VNET-WE-P-01",
+        "subnet1Name": "SBN-WE-P-BACKEND-INFRA",
+        "subnet2Name": "SBN-WE-P-BACKEND-WEB",
+        "public-ip-address-name": "PIP-BAS-WE-P-01",
         "bastion-subnet-name": "AzureBastionSubnet",
-        "bastion-name": "Sub-bastion-01",
-        "automationName": "[concat(variables('upcase_ka'),'-Automation-01')]",
-        "workspaceName": "[concat(variables('upcase_ka'),'-LogAnalytics-Workspace-01')]",
-        "recoveryserviceName": "[concat(variables('upcase_ka'),'-RS-01')]",
+        "bastion-name": "BAS-WE-P-01",
+        "automationName": "AUT-WE-P-INFRA-01",
+        "workspaceName": "LAW-WE-P-INFRA-01",
+        "recoveryserviceName": "RSV-WE-P-BACKUP-01",
         "policyName": "DefaultBackupPolicy",
         "backupTime": [
           "03:00"
@@ -490,4 +490,4 @@
           }
       }
     ]
-  }
+}
