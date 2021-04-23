@@ -47,6 +47,7 @@
       }
     },
     "variables": {
+        "availabilitySetName": "AS-WE-P-ADDS",
         "upcase_ka": "[toUpper(parameters('KlantAfkorting'))]",
         "lwcase_ka": "[toLower(parameters('KlantAfkorting'))]",
         "nsgName": "[concat('NSG-',variables('subnet1Name'))]",
@@ -87,6 +88,19 @@
         ]
     },
     "resources": [
+      {
+          "type": "Microsoft.Compute/availabilitySets",
+          "name": "[variables('availabilitySetName')]",
+          "apiVersion": "2019–03–01",
+          "location": "[variables('location')]",
+          "properties": {
+            "platformFaultDomainCount": "2",
+            "platformUpdateDomainCount": "5"
+          },
+          "sku": {
+            "name": "Aligned"
+          }
+      },
       {
           "type": "Microsoft.Network/networkSecurityGroups",
           "apiVersion": "2020-05-01",
@@ -313,6 +327,9 @@
               "enabled": true,
               "storageUri": "[reference(resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))).primaryEndpoints.blob]"
             }
+          },
+          "availabilitySet": {
+            "id": "[resourceId('Microsoft.Compute/availabilitySets',variables('availabilitySetName'))]"
           }
         }
       },
@@ -363,6 +380,9 @@
               "enabled": true,
               "storageUri": "[reference(resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))).primaryEndpoints.blob]"
             }
+          },
+          "availabilitySet": {
+            "id": "[resourceId('Microsoft.Compute/availabilitySets',variables('availabilitySetName'))]"
           }
         }
       },
