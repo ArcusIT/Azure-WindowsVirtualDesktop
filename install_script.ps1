@@ -4,10 +4,10 @@
 #Invoke-Command -ScriptBlock $ScriptBlock -ArgumentList ($args + @('someargument'))
 
 #region Import modules en start logging
-#if (-not (New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {   
-#    Write-warning "Het script starten als administrator"  
-#    Break
-#}
+if (-not (New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {   
+    Write-warning "Start het script in een elevated PowerShell"  
+    Break
+}
 
 try {
     Write-host "Importeren module PSFramework" -ForegroundColor Green
