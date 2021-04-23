@@ -3,7 +3,7 @@
 #$ScriptBlock = [Scriptblock]::Create($Script.Content)
 #Invoke-Command -ScriptBlock $ScriptBlock -ArgumentList ($args + @('someargument'))
 
-#region Import modules en start logging
+#region Start logging
 if (-not (New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {   
     Write-warning "Start het script in een elevated PowerShell"  
     Break
@@ -26,24 +26,29 @@ try {
         Exit
     }
 }
-
-try {
-    Write-PSFMessage -Message "Importeren module Az" -level host
-    Import-module Az.Resources -ErrorAction Stop
-} Catch {
-    Write-PSFMessage -Message "Module niet gevonden; Probeer de module te installeren." -level Warning
-    Install-Module -Name Az.Resources -Scope CurrentUser -Repository PSGallery -Force -ErrorAction Stop
-    Try {
-        Import-module Az.Resources -ErrorAction Stop
-        Write-PSFMessage -Message "Module Az geïnstalleerd" -level host
-    } Catch {
-        Write-PSFMessage -Message "Kan module Az niet importeren; Bestaat de module wel? Installeer de module handmatig." -level Warning
-        Exit
-    }
-}
 #endregion Import modules en start logging
 
 #region Functions
+Function Start-ImportModule {
+    Param(
+        [string]$Module
+    )
+    try {
+        Write-PSFMessage -Message "Importeren module $Module" -level host
+        Import-module $Module -ErrorAction Stop
+    } Catch {
+        Write-PSFMessage -Message "Module niet gevonden; Probeer de module te installeren." -level Warning
+        Install-Module -Name $Module -Scope CurrentUser -Repository PSGallery -Force -ErrorAction Stop
+        Try {
+            Import-module $Module -ErrorAction Stop
+            Write-PSFMessage -Message "Module $Module geïnstalleerd" -level host
+        } Catch {
+            Write-PSFMessage -Message "Kan module $Module niet importeren; Bestaat de module wel? Installeer de module handmatig." -level Warning
+            Exit
+        }
+    }
+}
+
 Function Start-AzConnection{
     Clear-AzContext -Force | Out-Null
     Write-PSFMessage -Message "Verbinden met Azure" -level host
@@ -59,11 +64,25 @@ Function Start-AzConnection{
 
 Function Start-Deployment{
     Param(
-        [string]$TemplateUri
+        [string]$TemplateUri,
+        [string]$vmName,
+        [string]$DomainName,
+        [string]$Username,
+        [securestring]$Password
     )
+    $Parameters = @{}
+    $Parameters = @{
+        ResourceGroupName = $ResourceGroupName
+        TemplateUri = $TemplateUri
+        ErrorAction = "Stop"
+    }
+    If ($vmName) { $Parameters += @{vmName = $vmName}}
+    If ($DomainName) { $Parameters += @{domainName = $DomainName}}
+    If ($Username) { $Parameters += @{Username = $Username}}
+    If ($Password) { $Parameters += @{Password = $Password}}
     Try {
         Write-PSFMessage -Message "Start deployment: $TemplateUri" -level host
-        New-AzResourceGroupDeployment -ResourceGroupName $ResourceGroupName -TemplateUri $TemplateUri -ErrorAction Stop | Out-Null
+        New-AzResourceGroupDeployment @Parameters | Out-Null
         Write-PSFMessage -Message "Deployment van $TemplateUri goed gegaan" -level Verbose
     } Catch {
         Write-PSFMessage -Message "Kon de deployment niet uitvoeren..." -Level Warning -ErrorRecord $_
@@ -72,9 +91,15 @@ Function Start-Deployment{
 }
 
 Function Start-CreateResourceGroup{
+    $Parameters = @{}
+    $Parameters = @{
+        ResourceGroupName = $ResourceGroupName
+        ErrorVariable = "notPresent"
+        ErrorACtion = "SilentlyContinue"
+    }
     Try {
         Write-PSFMessage -Message "Controleren op bestaan ResourceGroup $ResourceGroupName" -level host
-        Get-AzResourceGroup -Name $ResourceGroupName -ErrorVariable notPresent -ErrorAction SilentlyContinue | Out-Null
+        Get-AzResourceGroup @Parameters | Out-Null
     } Catch {
         Write-PSFMessage -Message "Ophalen van ResourceGroups niet goed gegaan" -Level Warning -ErrorRecord $_
         Exit
@@ -95,16 +120,36 @@ Function Start-CreateResourceGroup{
         Exit
     }        
 }
+Function Start-GetAzVM{
+    $AzVMs = Get-AzVM -ResourceGroupName $ResourceGroupName
+    if ($AzVMs.count -eq 2) {
+        Write-PSFMessage -Message "Gecontorleerd en VM's $($AzVMs.name[0]) en $($AzVMs.name[1]) bestaan" -level Verbose
+        Return $AzVMs
+    }
+    Else {
+        Write-PSFMessage -Message "VM's zijn niet goed aangemaakt" -Level Warning
+        Exit
+    }
+}
 #endregion Functions
 
 #region Variables
 $ResourceGroupName = "RGR-WE-P-WVD"
 $ResourceGroupLocation = "westeurope"
+$AD_DomainName = "test.nl"
+$AD_Username = "arcusadmin"
+$AD_Password = convertTo-SecureString "GoodJob4You@1" -AsPlainText -force
 #endregion Variables
 
+#region Main
+Start-ImportModule -Module "Az.Resources"
+Start-ImportModule -Module "Az.Network"
 Start-AzConnection
 Start-CreateResourceGroup
 Start-Deployment -TemplateUri "https://raw.githubusercontent.com/ArcusIT/Azure-WindowsVirtualDesktop/main/Deploy_baseline.json"
+$VMs = Start-GetAzVM
+Start-Deployment -TemplateUri "https://raw.githubusercontent.com/ArcusIT/Azure-WindowsVirtualDesktop/main/Deploy_ADDS_Forest.json" -vmName $VMs.name[0] -DomainName $AD_DomainName -Username $AD_Username -Password $AD_Password
 Pause
+#endregion Main
 
 
