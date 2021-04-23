@@ -72,11 +72,6 @@ Function Start-Deployment{
 }
 
 Function Start-CreateResourceGroup{
-#    Param(
-#        [string]$ResourceGroupName,
-#        [string]$ResourceGroupLocation
-#    )
-
     Try {
         Write-PSFMessage -Message "Controleren op bestaan ResourceGroup $ResourceGroupName" -level host
         Get-AzResourceGroup -Name $ResourceGroupName -ErrorVariable notPresent -ErrorAction SilentlyContinue | Out-Null

@@ -1,4 +1,13 @@
 # Azure-WindowsVirtualDesktop
+
+PowerShell commando:
+Set-ExecutionPolicy Bypass
+$Script = Invoke-WebRequest 'https://raw.githubusercontent.com/ArcusIT/Azure-WindowsVirtualDesktop/main/install_script.ps1' -UseBasicParsing
+$ScriptBlock = [Scriptblock]::Create($Script.Content)
+Invoke-Command -ScriptBlock $ScriptBlock -ArgumentList ($args + @('someargument'))
+
+
+
 Klik hier om de WVD Baseline te deployen<br>
 [![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FArcusIT%2FAzure-WindowsVirtualDesktop%2Fmain%2FDeploy_baseline.json)<br><br>
 Klik hier om een nieuw ADDS forest te deployen<br>
