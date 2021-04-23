@@ -1,7 +1,7 @@
 # Azure-WindowsVirtualDesktop
 
-<h1>PowerShell deployment</h1>
-<br>
+<h2>PowerShell deployment</h2>
+<br><br>
 ```PowerShell
 Set-ExecutionPolicy Bypass
 $Script = Invoke-WebRequest 'https://raw.githubusercontent.com/ArcusIT/Azure-WindowsVirtualDesktop/main/install_script.ps1' -UseBasicParsing
