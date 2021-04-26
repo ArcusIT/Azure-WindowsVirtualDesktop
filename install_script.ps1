@@ -68,7 +68,8 @@ Function Start-Deployment{
         [string]$vmName,
         [string]$DomainName,
         [string]$Username,
-        [securestring]$Password
+        [securestring]$Password,
+        [string]$Prefix
     )
     $Parameters = @{}
     $Parameters = @{
@@ -80,6 +81,7 @@ Function Start-Deployment{
     If ($DomainName) { $Parameters += @{domainName = $DomainName}}
     If ($Username) { $Parameters += @{Username = $Username}}
     If ($Password) { $Parameters += @{Password = $Password}}
+    If ($Prefix) { $Parameters += @{Klantafkorting = $Prefix}}
     Try {
         Write-PSFMessage -Message "Start deployment: $TemplateUri" -level host
         New-AzResourceGroupDeployment @Parameters | Out-Null
@@ -131,24 +133,70 @@ Function Start-GetAzVM{
         Exit
     }
 }
+
+Function Start-RestartAzVM {
+    param (
+        [string]$vmName
+    )
+    Try {
+        Write-PSFMessage -Message "Herstarten van vm $vmName" -level host
+        Restart-AzVM -Name $vmName -ErrorAction Stop | Out-Null
+        Write-PSFMessage -Message "Herstarten van vm $vmName succesvol" -level verbose
+    } Catch {
+        Write-PSFMessage -Message "Herstarten van vm $vmName niet goed gegaan" -Level Warning -ErrorRecord $_
+    }
+}
+
+Function Start-UserInput{
+    Param(
+        [string]$Prompt,
+        [int]$InputMinLength,
+        [int]$InputMaxLength,
+        [bool]$Password,
+        [string]$Default
+    )
+    $Parameters = @{}
+    If ($Default) { $Prompt += " (Standaard: $Default)"}
+    If ($Prompt) { $Parameters += @{Prompt = $Prompt}}
+    If ($Password) { $Parameters += @{AsSecureString = $true}}
+    do {
+        $Input = Read-Host @Parameters
+        If ($Default -and $Input.Length -eq 0) {
+            $Input = $Default
+            $Valid = $true
+        }
+        If ($InputMinLength -and $InputMaxLength) {
+            $Valid = $InputMinLength -le $Input.Length -and $InputMaxLength -ge $Input.Length
+            if (-not $Valid) {
+                Write-host "Ongeldige invoer"
+            }
+        } Else {
+            $Valid = $true
+        }
+    } until ($Valid)
+    Return $Input
+}
+
 #endregion Functions
 
 #region Variables
-$ResourceGroupName = "RGR-WE-P-WVD"
+$ResourceGroupName = "RGR-WE-P-WVD1"
 $ResourceGroupLocation = "westeurope"
-$AD_DomainName = "test.nl"
-$AD_Username = "arcusadmin"
-$AD_Password = convertTo-SecureString "GoodJob4You@1" -AsPlainText -force
 #endregion Variables
 
 #region Main
 Start-ImportModule -Module "Az.Resources"
 Start-ImportModule -Module "Az.Network"
 Start-AzConnection
+$Prefix = Start-UserInput -Prompt "Klantprefix (string tussen 2-4 characters)" -InputMinLength 2 -InputMaxLength 4
+$AD_DomainName = Start-UserInput -Prompt "AD Domeinnaam"
+$Username = Start-UserInput -Prompt "Username" -Default "arcusadmin"
+$Password = Start-UserInput -Prompt "Password" -Password $true
 Start-CreateResourceGroup
-Start-Deployment -TemplateUri "https://raw.githubusercontent.com/ArcusIT/Azure-WindowsVirtualDesktop/main/Deploy_baseline.json"
+Start-Deployment -TemplateUri "https://raw.githubusercontent.com/ArcusIT/Azure-WindowsVirtualDesktop/main/Deploy_baseline.json" -Username $Username -Password $Password
 $VMs = Start-GetAzVM
-Start-Deployment -TemplateUri "https://raw.githubusercontent.com/ArcusIT/Azure-WindowsVirtualDesktop/main/Deploy_ADDS_Forest.json" -vmName $VMs.name[0] -DomainName $AD_DomainName -Username $AD_Username -Password $AD_Password
+Start-Deployment -TemplateUri "https://raw.githubusercontent.com/ArcusIT/Azure-WindowsVirtualDesktop/main/Deploy_ADDS_Forest.json" -vmName $VMs.name[0] -DomainName $AD_DomainName -Username $Username -Password $Password
+Start-RestartAzVM -vmName $VMs.name[0]
 Pause
 #endregion Main
 

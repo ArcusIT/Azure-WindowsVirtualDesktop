@@ -2,19 +2,19 @@
     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
-      "KlantAfkorting": {
+      "Prefix": {
         "minLength": 2,
         "maxLength": 4,
         "type": "string"
       },
-      "adminUsername": {
+      "Username": {
         "type": "string",
         "defaultValue": "arcusadmin",
         "metadata": {
           "description": "Username for the Virtual Machine."
         }
       },
-      "adminPassword": {
+      "Password": {
         "type": "securestring",
         "minLength": 12,
         "metadata": {
@@ -48,18 +48,18 @@
     },
     "variables": {
         "availabilitySetName": "AS-WE-P-ADDS",
-        "upcase_ka": "[toUpper(parameters('KlantAfkorting'))]",
-        "lwcase_ka": "[toLower(parameters('KlantAfkorting'))]",
+        "upcase_prefix": "[toUpper(parameters('Prefix'))]",
+        "lwcase_prefix": "[toLower(parameters('Prefix'))]",
         "nsgName": "[concat('NSG-',variables('subnet1Name'))]",
         "nsgName2": "[concat('NSG-',variables('subnet2Name'))]",
         "location": "[resourceGroup().location]",
         "vmSize": "Standard_B2ms",
-        "vmName": "[concat(variables('upcase_ka'),'-ADDS01')]",
-        "vmName2": "[concat(variables('upcase_ka'),'-ADDS02')]",
+        "vmName": "[concat(variables('upcase_prefix'),'-ADDS01')]",
+        "vmName2": "[concat(variables('upcase_prefix'),'-ADDS02')]",
         "nicName": "[concat(variables('vmName'),'-NIC-01')]",
         "nicName2": "[concat(variables('vmName2'),'-NIC-01')]",
         "OSVersion": "2019-Datacenter",
-        "storageAccountName": "[concat(variables('lwcase_ka'),'diagnostics')]",
+        "storageAccountName": "[concat(variables('lwcase_prefix'),'diagnostics')]",
         "storageAccountType": "Standard_LRS",
         "vnetName": "VNET-WE-P-01",
         "subnet1Name": "SBN-WE-P-BACKEND-INFRA",
@@ -296,8 +296,8 @@
           },
           "osProfile": {
             "computerName": "[variables('vmName')]",
-            "adminUsername": "[parameters('adminUsername')]",
-            "adminPassword": "[parameters('adminPassword')]",
+            "Username": "[parameters('Username')]",
+            "Password": "[parameters('Password')]",
             "windowsConfiguration": {
               "timeZone": "W. Europe Standard Time"
             }
@@ -350,8 +350,8 @@
           },
           "osProfile": {
             "computerName": "[variables('vmName2')]",
-            "adminUsername": "[parameters('adminUsername')]",
-            "adminPassword": "[parameters('adminPassword')]",
+            "Username": "[parameters('Username')]",
+            "Password": "[parameters('Password')]",
             "windowsConfiguration": {
               "timeZone": "W. Europe Standard Time"
             }
