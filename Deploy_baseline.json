@@ -9,7 +9,6 @@
       },
       "Username": {
         "type": "string",
-        "defaultValue": "arcusadmin",
         "metadata": {
           "description": "Username for the Virtual Machine."
         }
