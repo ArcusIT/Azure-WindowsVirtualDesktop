@@ -17,7 +17,7 @@
         "type": "securestring",
         "minLength": 12,
         "metadata": {
-          "description": "Password for the Virtual Machine."
+          "description": "adminPassword for the Virtual Machine."
         }
       },
       "vnetAddressPrefix": {
@@ -295,8 +295,8 @@
           },
           "osProfile": {
             "computerName": "[variables('vmName')]",
-            "Username": "[parameters('Username')]",
-            "Password": "[parameters('Password')]",
+            "adminUsername": "[parameters('Username')]",
+            "adminPassword": "[parameters('Password')]",
             "windowsConfiguration": {
               "timeZone": "W. Europe Standard Time"
             }
@@ -349,8 +349,8 @@
           },
           "osProfile": {
             "computerName": "[variables('vmName2')]",
-            "Username": "[parameters('Username')]",
-            "Password": "[parameters('Password')]",
+            "adminUsername": "[parameters('Username')]",
+            "adminPassword": "[parameters('Password')]",
             "windowsConfiguration": {
               "timeZone": "W. Europe Standard Time"
             }
