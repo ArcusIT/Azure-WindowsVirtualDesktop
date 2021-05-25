@@ -58,7 +58,7 @@
         "nicName": "[concat(variables('vmName'),'-NIC-01')]",
         "nicName2": "[concat(variables('vmName2'),'-NIC-01')]",
         "OSVersion": "2019-Datacenter",
-        "storageAccountName": "[concat(variables('lwcase_prefix'),'diagnostics')]",
+        "storageAccountName": "[concat(variables('lwcase_prefix'),uniqueString(resourceGroup().id))]",
         "storageAccountType": "Standard_LRS",
         "vnetName": "VNET-WE-P-01",
         "subnet1Name": "SBN-WE-P-BACKEND-INFRA",
