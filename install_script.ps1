@@ -1,3 +1,5 @@
+#Update management werkt nog niet naar behoren. Denk dat dit ligt aan het linked account. Toevoegen in JSON.
+
 #Set-ExecutionPolicy Bypass
 #$Script = Invoke-WebRequest 'https://raw.githubusercontent.com/ArcusIT/Azure-WindowsVirtualDesktop/main/install_script.ps1' -UseBasicParsing
 #$ScriptBlock = [Scriptblock]::Create($Script.Content)
@@ -50,10 +52,20 @@ Function Start-ImportModule {
 }
 
 Function Start-AzConnection{
+    Param(
+        [string]$Tenant,
+        [string]$Subscription
+    )
+    $Parameters = @{}
+    $Parameters = @{
+        ErrorAction = "Stop"
+    }
+    If ($Tenant) { $Parameters += @{Tenant = $Tenant}}
+    If ($Subscription) { $Parameters += @{Subscription = $Subscription}}
     Clear-AzContext -Force | Out-Null
     Write-PSFMessage -Message "Verbinden met Azure" -level host
     Try {
-        Connect-AzAccount -ErrorAction Stop | Out-Null 
+        Connect-AzAccount @Parameters | Out-Null 
         Write-PSFMessage -Message "Verbonden met Azure" -level Verbose
     } Catch {
         Write-PSFMessage -Message "Kon niet verbinden met Azure" -Level Warning -ErrorRecord $_
@@ -81,7 +93,7 @@ Function Start-Deployment{
     If ($DomainName) { $Parameters += @{domainName = $DomainName}}
     If ($Username) { $Parameters += @{Username = $Username}}
     If ($Password) { $Parameters += @{Password = $Password}}
-    If ($Prefix) { $Parameters += @{Klantafkorting = $Prefix}}
+    If ($Prefix) { $Parameters += @{Prefix = $Prefix}}
     Try {
         Write-PSFMessage -Message "Start deployment: $TemplateUri" -level host
         New-AzResourceGroupDeployment @Parameters | Out-Null
@@ -140,7 +152,7 @@ Function Start-RestartAzVM {
     )
     Try {
         Write-PSFMessage -Message "Herstarten van vm $vmName" -level host
-        Restart-AzVM -Name $vmName -ErrorAction Stop | Out-Null
+        Restart-AzVM -Name $vmName -ResourceGroupName $ResourceGroupName -ErrorAction Stop | Out-Null
         Write-PSFMessage -Message "Herstarten van vm $vmName succesvol" -level verbose
     } Catch {
         Write-PSFMessage -Message "Herstarten van vm $vmName niet goed gegaan" -Level Warning -ErrorRecord $_
@@ -156,6 +168,7 @@ Function Start-UserInput{
         [string]$Default
     )
     $Parameters = @{}
+    If ($InputMinLength -and $InputMaxLength) { $Prompt += " (invoer tussen $InputMinLength en $InputMaxLength characters)" }
     If ($Default) { $Prompt += " (Standaard: $Default)"}
     If ($Prompt) { $Parameters += @{Prompt = $Prompt}}
     If ($Password) { $Parameters += @{AsSecureString = $true}}
@@ -177,26 +190,61 @@ Function Start-UserInput{
     Return $Input
 }
 
+Function Start-SetDHCP {
+    $DNSIPs = "10.0.0.11","10.0.0.12"
+    $vnet = Get-AzVirtualNetwork -name "VNET-WE-P-01" -resourcegroup $resourcegroupname
+    $vnet.DhcpOptions.DnsServers = $null
+    foreach ($IP in $DNSIPs) {        
+        $vnet.DhcpOptions.DnsServers += $IP
+    }
+    Try {
+        Write-PSFMessage -Message "Aanpassen DNS servers" -level host
+        Set-AzVirtualNetwork -VirtualNetwork $vnet -ErrorAction Stop | Out-Null
+        Write-PSFMessage -Message "Aanpassen DNS servers gelukt" -level verbose
+    } Catch {
+        Write-PSFMessage -Message "Aanpassen DNS servers niet goed gegaan" -Level Warning -ErrorRecord $_
+    }
+}
+
+Function Start-SetAutomationSoftwareUpdate {
+    $duration = New-TimeSpan -Hours 2
+    $StartTime = (Get-Date "02:00:00").AddDays(5)
+    [System.DayOfWeek[]]$WeekendDay = [System.DayOfWeek]::Tuesday
+    $AutomationAccountName = (Get-AzAutomationAccount -ResourceGroupName $ResourceGroupName).AutomationAccountName
+    $LogAnalyticsWorkspaceName = (Get-AzOperationalInsightsWorkspace -ResourceGroupName $ResourceGroupName).Name
+    #Create a Weekly Scedule 
+    $Schedule = New-AzAutomationSchedule -AutomationAccountName $AutomationAccountName -Name "WeeklyCriticalSecurity" -StartTime $StartTime -WeekInterval 1 -DaysOfWeek $WeekendDay -ResourceGroupName $ResourceGroupName -Verbose
+    $VMIDs = (Get-AzVM -ResourceGroupName $ResourceGroupName).Id 
+    New-AzAutomationSoftwareUpdateConfiguration -ResourceGroupName $ResourceGroupName -Schedule $Schedule -Windows -AzureVMResourceId $VMIDs -Duration $duration -IncludedUpdateClassification Critical,Security,Definition -AutomationAccountName $AutomationAccountName -Verbose
+}
+
 #endregion Functions
 
 #region Variables
-$ResourceGroupName = "RGR-WE-P-WVD1"
+$ResourceGroupName = "RGR-WE-P-WVD6"
 $ResourceGroupLocation = "westeurope"
+$AutomationAccountName = "AUT-WE-P-INFRA-01"
 #endregion Variables
 
 #region Main
 Start-ImportModule -Module "Az.Resources"
 Start-ImportModule -Module "Az.Network"
+Start-ImportModule -Module "Az.OperationalInsights"
 Start-AzConnection
-$Prefix = Start-UserInput -Prompt "Klantprefix (string tussen 2-4 characters)" -InputMinLength 2 -InputMaxLength 4
+$Prefix = Start-UserInput -Prompt "Klantprefix" -InputMinLength 2 -InputMaxLength 4
 $AD_DomainName = Start-UserInput -Prompt "AD Domeinnaam"
 $Username = Start-UserInput -Prompt "Username" -Default "arcusadmin"
-$Password = Start-UserInput -Prompt "Password" -Password $true
+$Password = Start-UserInput -Prompt "Password" -Password $true -InputMinLength 12 -InputMaxLength 25
 Start-CreateResourceGroup
-Start-Deployment -TemplateUri "https://raw.githubusercontent.com/ArcusIT/Azure-WindowsVirtualDesktop/main/Deploy_baseline.json" -Username $Username -Password $Password
+Start-Deployment -TemplateUri "https://raw.githubusercontent.com/ArcusIT/Azure-WindowsVirtualDesktop/main/Deploy_baseline.json" -Username $Username -Password $Password -Prefix $Prefix
 $VMs = Start-GetAzVM
 Start-Deployment -TemplateUri "https://raw.githubusercontent.com/ArcusIT/Azure-WindowsVirtualDesktop/main/Deploy_ADDS_Forest.json" -vmName $VMs.name[0] -DomainName $AD_DomainName -Username $Username -Password $Password
 Start-RestartAzVM -vmName $VMs.name[0]
+Start-SetDHCP
+Start-RestartAzVM -vmName $VMs.name[1]
+Start-Deployment -TemplateUri "https://raw.githubusercontent.com/ArcusIT/Azure-WindowsVirtualDesktop/main/Deploy_ADDS_DC.json" -vmName $VMs.name[1] -DomainName $AD_DomainName -Username "$AD_DomainName\$Username" -Password $Password
+Start-RestartAzVM -vmName $VMs.name[1]
+#Start-SetAutomationSoftwareUpdate
 Pause
 #endregion Main
 
