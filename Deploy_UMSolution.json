@@ -4,6 +4,7 @@
     "parameters": {
         "workspaceName": {
             "type": "string",
+            "defaultValue": "LAW-WE-P-INFRA-01",
             "metadata": {
                 "description": "Workspace name"
             }
@@ -41,52 +42,16 @@
         },
         "automationAccountName": {
             "type": "string",
+            "defaultValue": "AUT-WE-P-INFRA-01",
             "metadata": {
                 "description": "Automation account name"
             }
         },
         "automationAccountLocation": {
             "type": "string",
+            "defaultValue": "westeurope",
             "metadata": {
                 "description": "Specifies the location in which to create the Automation account."
-            }
-        },
-        "sampleGraphicalRunbookName": {
-            "type": "String",
-            "defaultValue": "AzureAutomationTutorial"
-        },
-        "sampleGraphicalRunbookDescription": {
-            "type": "String",
-            "defaultValue": " An example runbook that gets all the Resource Manager resources by using the Run As account (service principal)."
-        },
-        "samplePowerShellRunbookName": {
-            "type": "String",
-            "defaultValue": "AzureAutomationTutorialScript"
-        },
-        "samplePowerShellRunbookDescription": {
-            "type": "String",
-            "defaultValue": " An example runbook that gets all the Resource Manager resources by using the Run As account (service principal)."
-        },
-        "samplePython2RunbookName": {
-            "type": "String",
-            "defaultValue": "AzureAutomationTutorialPython2"
-        },
-        "samplePython2RunbookDescription": {
-            "type": "String",
-            "defaultValue": " An example runbook that gets all the Resource Manager resources by using the Run As account (service principal)."
-        },
-        "_artifactsLocation": {
-            "type": "string",
-            "defaultValue": "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/101-automation/",
-            "metadata": {
-                "description": "URI to artifacts location"
-            }
-        },
-        "_artifactsLocationSasToken": {
-            "type": "securestring",
-            "defaultValue": "",
-            "metadata": {
-                "description": "The sasToken required to access _artifactsLocation.  When the template is deployed using the accompanying scripts, a sasToken will be automatically generated"
             }
         }
     },
