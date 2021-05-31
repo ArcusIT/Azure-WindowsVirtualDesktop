@@ -1,0 +1,51 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "workspaceResourceId": {
+            "type": "String",
+            "metadata": {
+                "description": "Workspace Resource ID."
+            }
+        },
+        "vmName": {
+            "type": "String"
+        }
+    },
+    "variables": {
+        "location": "[resourceGroup().location]"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "apiVersion": "2019-12-01",
+            "name": "[concat(parameters('vmName'),'/DependencyAgentWindows')]",
+            "location": "[variables('location')]",
+            "properties": {
+                "publisher": "Microsoft.Azure.Monitoring.DependencyAgent",
+                "type": "DependencyAgentWindows",
+                "typeHandlerVersion": "9.5",
+                "autoUpgradeMinorVersion": true
+            }
+        },
+        {
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('vmName'),'/MMAExtension')]",
+            "location": "[variables('location')]",
+            "properties": {
+                "publisher": "Microsoft.EnterpriseCloud.Monitoring",
+                "type": "MicrosoftMonitoringAgent",
+                "typeHandlerVersion": "1.0",
+                "autoUpgradeMinorVersion": true,
+                "settings": {
+                    "workspaceId": "[reference(parameters('workspaceResourceId'), '2015-03-20').customerId]",
+                    "stopOnMultipleConnections": true
+                },
+                "protectedSettings": {
+                    "workspaceKey": "[listKeys(parameters('workspaceResourceId'), '2015-03-20').primarySharedKey]"
+                }
+            }
+        }
+    ]
+}
