@@ -145,65 +145,6 @@
                     "name": "Basic"
                 }
             },
-            "resources": [
-                {
-                    "type": "runbooks",
-                    "apiVersion": "2018-06-30",
-                    "name": "[parameters('sampleGraphicalRunbookName')]",
-                    "location": "[parameters('automationAccountLocation')]",
-                    "dependsOn": [
-                        "[parameters('automationAccountName')]"
-                    ],
-                    "properties": {
-                        "runbookType": "GraphPowerShell",
-                        "logProgress": "false",
-                        "logVerbose": "false",
-                        "description": "[parameters('sampleGraphicalRunbookDescription')]",
-                        "publishContentLink": {
-                            "uri": "[uri(parameters('_artifactsLocation'), concat('scripts/AzureAutomationTutorial.graphrunbook', parameters('_artifactsLocationSasToken')))]",
-                            "version": "1.0.0.0"
-                        }
-                    }
-                },
-                {
-                    "type": "runbooks",
-                    "apiVersion": "2018-06-30",
-                    "name": "[parameters('samplePowerShellRunbookName')]",
-                    "location": "[parameters('automationAccountLocation')]",
-                    "dependsOn": [
-                        "[parameters('automationAccountName')]"
-                    ],
-                    "properties": {
-                        "runbookType": "PowerShell",
-                        "logProgress": "false",
-                        "logVerbose": "false",
-                        "description": "[parameters('samplePowerShellRunbookDescription')]",
-                        "publishContentLink": {
-                            "uri": "[uri(parameters('_artifactsLocation'), concat('scripts/AzureAutomationTutorial.ps1', parameters('_artifactsLocationSasToken')))]",
-                            "version": "1.0.0.0"
-                        }
-                    }
-                },
-                {
-                    "type": "runbooks",
-                    "apiVersion": "2018-06-30",
-                    "name": "[parameters('samplePython2RunbookName')]",
-                    "location": "[parameters('automationAccountLocation')]",
-                    "dependsOn": [
-                        "[parameters('automationAccountName')]"
-                    ],
-                    "properties": {
-                        "runbookType": "Python2",
-                        "logProgress": "false",
-                        "logVerbose": "false",
-                        "description": "[parameters('samplePython2RunbookDescription')]",
-                        "publishContentLink": {
-                            "uri": "[uri(parameters('_artifactsLocation'), concat('scripts/AzureAutomationTutorialPython2.py', parameters('_artifactsLocationSasToken')))]",
-                            "version": "1.0.0.0"
-                        }
-                    }
-                }
-            ]
         },
         {
             "type": "Microsoft.OperationalInsights/workspaces/linkedServices",
