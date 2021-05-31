@@ -229,8 +229,7 @@ Function Start-SetAutomationSoftwareUpdate {
 #endregion Functions
 
 #region Variables
-$ResourceGroupName = "RGR-WE-P-WVD8"
-####$ResourceGroupName = "RGR-WE-P-WVD"
+$ResourceGroupName = "RGR-WE-P-WVD"
 $ResourceGroupLocation = "westeurope"
 $AutomationAccountName = "AUT-WE-P-INFRA-01"
 #endregion Variables
