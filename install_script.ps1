@@ -207,15 +207,21 @@ Function Start-SetDHCP {
 }
 
 Function Start-SetAutomationSoftwareUpdate {
-    $duration = New-TimeSpan -Hours 2
-    $StartTime = (Get-Date "02:00:00").AddDays(5)
-    [System.DayOfWeek[]]$WeekendDay = [System.DayOfWeek]::Tuesday
-    $AutomationAccountName = (Get-AzAutomationAccount -ResourceGroupName $ResourceGroupName).AutomationAccountName
-    $LogAnalyticsWorkspaceName = (Get-AzOperationalInsightsWorkspace -ResourceGroupName $ResourceGroupName).Name
-    #Create a Weekly Scedule 
-    $Schedule = New-AzAutomationSchedule -AutomationAccountName $AutomationAccountName -Name "WeeklyCriticalSecurity" -StartTime $StartTime -WeekInterval 1 -DaysOfWeek $WeekendDay -ResourceGroupName $ResourceGroupName -Verbose
-    $VMIDs = (Get-AzVM -ResourceGroupName $ResourceGroupName).Id 
-    New-AzAutomationSoftwareUpdateConfiguration -ResourceGroupName $ResourceGroupName -Schedule $Schedule -Windows -AzureVMResourceId $VMIDs -Duration $duration -IncludedUpdateClassification Critical,Security,Definition -AutomationAccountName $AutomationAccountName -Verbose
+    Try {
+        Write-PSFMessage -Message "Aanmaken Automation Schedule" -level host
+        $duration = New-TimeSpan -Hours 2
+        $StartTime = (Get-Date "02:00:00").AddDays(5)
+        [System.DayOfWeek[]]$WeekendDay = [System.DayOfWeek]::Tuesday
+        $AutomationAccountName = (Get-AzAutomationAccount -ResourceGroupName $ResourceGroupName).AutomationAccountName
+        $LogAnalyticsWorkspaceName = (Get-AzOperationalInsightsWorkspace -ResourceGroupName $ResourceGroupName).Name
+        #Create a Weekly Scedule 
+        $Schedule = New-AzAutomationSchedule -AutomationAccountName $AutomationAccountName -Name "WeeklyCriticalSecurity" -StartTime $StartTime -WeekInterval 1 -DaysOfWeek $WeekendDay -ResourceGroupName $ResourceGroupName
+        $VMIDs = (Get-AzVM -ResourceGroupName $ResourceGroupName).Id 
+        New-AzAutomationSoftwareUpdateConfiguration -ResourceGroupName $ResourceGroupName -Schedule $Schedule -Windows -AzureVMResourceId $VMIDs -Duration $duration -IncludedUpdateClassification Critical,Security,Definition -AutomationAccountName $AutomationAccountName -ErrorAction Stop | Out-Null
+        Write-PSFMessage -Message "Aanmaken Automation Schedule gelukt" -level host
+    } Catch {
+        Write-PSFMessage -Message "Aanmaken Automation Schedule niet goed gegaan" -Level Warning -ErrorRecord $_
+    }
 }
 
 #endregion Functions
@@ -247,6 +253,8 @@ Start-RestartAzVM -vmName $VMs.name[1]
 Start-Deployment -TemplateUri "https://raw.githubusercontent.com/ArcusIT/Azure-WindowsVirtualDesktop/main/Deploy_ADDS_DC.json" -vmName $VMs.name[1] -DomainName $AD_DomainName -Username "$AD_DomainName\$Username" -Password $Password
 Start-RestartAzVM -vmName $VMs.name[1]
 Start-SetAutomationSoftwareUpdate
+Start-Deployment -TemplateUri "https://raw.githubusercontent.com/ArcusIT/Azure-WindowsVirtualDesktop/main/Deploy_UMSolution.json" 
+
 Pause
 #endregion Main
 
