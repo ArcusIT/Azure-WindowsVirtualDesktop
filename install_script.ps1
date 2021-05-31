@@ -1,5 +1,3 @@
-#Update management werkt nog niet naar behoren. Denk dat dit ligt aan het linked account. Toevoegen in JSON.
-
 #Set-ExecutionPolicy Bypass
 #$Script = Invoke-WebRequest 'https://raw.githubusercontent.com/ArcusIT/Azure-WindowsVirtualDesktop/main/install_script.ps1' -UseBasicParsing
 #$ScriptBlock = [Scriptblock]::Create($Script.Content)
