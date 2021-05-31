@@ -81,7 +81,8 @@ Function Start-Deployment{
         [string]$DomainName,
         [string]$Username,
         [securestring]$Password,
-        [string]$Prefix
+        [string]$Prefix,
+        [string]$workspaceResourceId
     )
     $Parameters = @{}
     $Parameters = @{
@@ -94,6 +95,7 @@ Function Start-Deployment{
     If ($Username) { $Parameters += @{Username = $Username}}
     If ($Password) { $Parameters += @{Password = $Password}}
     If ($Prefix) { $Parameters += @{Prefix = $Prefix}}
+    If ($workspaceResourceId) { $Parameters += @{workspaceResourceId = $workspaceResourceId}}
     Try {
         Write-PSFMessage -Message "Start deployment: $TemplateUri" -level host
         New-AzResourceGroupDeployment @Parameters | Out-Null
@@ -218,7 +220,7 @@ Function Start-SetAutomationSoftwareUpdate {
         $Schedule = New-AzAutomationSchedule -AutomationAccountName $AutomationAccountName -Name "WeeklyCriticalSecurity" -StartTime $StartTime -WeekInterval 1 -DaysOfWeek $WeekendDay -ResourceGroupName $ResourceGroupName
         $VMIDs = (Get-AzVM -ResourceGroupName $ResourceGroupName).Id 
         New-AzAutomationSoftwareUpdateConfiguration -ResourceGroupName $ResourceGroupName -Schedule $Schedule -Windows -AzureVMResourceId $VMIDs -Duration $duration -IncludedUpdateClassification Critical,Security,Definition -AutomationAccountName $AutomationAccountName -ErrorAction Stop | Out-Null
-        Write-PSFMessage -Message "Aanmaken Automation Schedule gelukt" -level host
+        Write-PSFMessage -Message "Aanmaken Automation Schedule gelukt" -level verbose
     } Catch {
         Write-PSFMessage -Message "Aanmaken Automation Schedule niet goed gegaan" -Level Warning -ErrorRecord $_
     }
@@ -227,7 +229,7 @@ Function Start-SetAutomationSoftwareUpdate {
 #endregion Functions
 
 #region Variables
-$ResourceGroupName = "RGR-WE-P-WVD7"
+$ResourceGroupName = "RGR-WE-P-WVD8"
 ####$ResourceGroupName = "RGR-WE-P-WVD"
 $ResourceGroupLocation = "westeurope"
 $AutomationAccountName = "AUT-WE-P-INFRA-01"
@@ -243,6 +245,7 @@ $AD_DomainName = Start-UserInput -Prompt "AD Domeinnaam"
 $Username = Start-UserInput -Prompt "Username" -Default "arcusadmin"
 $Password = Start-UserInput -Prompt "Password" -Password $true -InputMinLength 12 -InputMaxLength 25
 Start-CreateResourceGroup
+Start-Deployment -TemplateUri "https://raw.githubusercontent.com/ArcusIT/Azure-WindowsVirtualDesktop/main/Deploy_UMSolution.json" 
 Start-Deployment -TemplateUri "https://raw.githubusercontent.com/ArcusIT/Azure-WindowsVirtualDesktop/main/Deploy_baseline.json" -Username $Username -Password $Password -Prefix $Prefix
 $VMs = Start-GetAzVM
 Start-Deployment -TemplateUri "https://raw.githubusercontent.com/ArcusIT/Azure-WindowsVirtualDesktop/main/Deploy_ADDS_Forest.json" -vmName $VMs.name[0] -DomainName $AD_DomainName -Username $Username -Password $Password
@@ -252,8 +255,9 @@ Start-RestartAzVM -vmName $VMs.name[1]
 Start-Deployment -TemplateUri "https://raw.githubusercontent.com/ArcusIT/Azure-WindowsVirtualDesktop/main/Deploy_ADDS_DC.json" -vmName $VMs.name[1] -DomainName $AD_DomainName -Username "$AD_DomainName\$Username" -Password $Password
 Start-RestartAzVM -vmName $VMs.name[1]
 Start-SetAutomationSoftwareUpdate
-Start-Deployment -TemplateUri "https://raw.githubusercontent.com/ArcusIT/Azure-WindowsVirtualDesktop/main/Deploy_UMSolution.json" 
-
+$Workspace = get-AzOperationalInsightsWorkspace
+Start-Deployment -TemplateUri "https://raw.githubusercontent.com/ArcusIT/Azure-WindowsVirtualDesktop/main/Onboard_VmToWorkspace.json" -vmName $VMs.name[0] -workspaceResourceId $Workspace.ResourceId
+Start-Deployment -TemplateUri "https://raw.githubusercontent.com/ArcusIT/Azure-WindowsVirtualDesktop/main/Onboard_VmToWorkspace.json" -vmName $VMs.name[1] -workspaceResourceId $Workspace.ResourceId
 Pause
 #endregion Main
 
