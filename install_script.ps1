@@ -237,8 +237,7 @@ $AutomationAccountName = "AUT-WE-P-INFRA-01"
 Start-ImportModule -Module "Az.Resources"
 Start-ImportModule -Module "Az.Network"
 Start-ImportModule -Module "Az.OperationalInsights"
-####Start-AzConnection
-Start-AzConnection -Tenant 30d9cfcc-492a-428d-a7be-d4c7f4e4cc16 -subscription 231c8a27-1e2b-4ec0-a47b-8907f8ac896b
+Start-AzConnection
 $Prefix = Start-UserInput -Prompt "Klantprefix" -InputMinLength 2 -InputMaxLength 4
 $AD_DomainName = Start-UserInput -Prompt "AD Domeinnaam"
 $Username = Start-UserInput -Prompt "Username" -Default "arcusadmin"
