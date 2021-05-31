@@ -6,10 +6,10 @@
 #Invoke-Command -ScriptBlock $ScriptBlock -ArgumentList ($args + @('someargument'))
 
 #region Start logging
-if (-not (New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {   
-    Write-warning "Start het script in een elevated PowerShell"  
-    Break
-}
+#if (-not (New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {   
+#    Write-warning "Start het script in een elevated PowerShell"  
+#    Break
+#}
 
 try {
     Write-host "Importeren module PSFramework" -ForegroundColor Green
@@ -18,7 +18,7 @@ try {
 } Catch {
     Write-host "Module niet gevonden; Probeer de module te installeren" -ForegroundColor Green
     Write-warning "Er kunnen meldingen komen om Nuget te installeren en/of je uit onbetrouwbare bronnen wilt installeren; Kies bij beide voor ja."
-    install-module -name PSFramework -Scope CurrentUser -Force -ErrorAction Stop
+    install-module -name PSFramework -Scope CurrentUser -Confirm:$False -Force -ErrorAction Stop
     Try {
         import-module PSFramework -ErrorAction Stop
         Write-PSFMessage -Message "Start logging" -level verbose
@@ -40,7 +40,7 @@ Function Start-ImportModule {
         Import-module $Module -ErrorAction Stop
     } Catch {
         Write-PSFMessage -Message "Module niet gevonden; Probeer de module te installeren." -level Warning
-        Install-Module -Name $Module -Scope CurrentUser -Repository PSGallery -Force -ErrorAction Stop
+        Install-Module -Name $Module -Scope CurrentUser -Confirm:$False -Repository PSGallery -Force -ErrorAction Stop
         Try {
             Import-module $Module -ErrorAction Stop
             Write-PSFMessage -Message "Module $Module geïnstalleerd" -level host
@@ -221,7 +221,8 @@ Function Start-SetAutomationSoftwareUpdate {
 #endregion Functions
 
 #region Variables
-$ResourceGroupName = "RGR-WE-P-WVD6"
+$ResourceGroupName = "RGR-WE-P-WVD7"
+####$ResourceGroupName = "RGR-WE-P-WVD"
 $ResourceGroupLocation = "westeurope"
 $AutomationAccountName = "AUT-WE-P-INFRA-01"
 #endregion Variables
@@ -230,7 +231,8 @@ $AutomationAccountName = "AUT-WE-P-INFRA-01"
 Start-ImportModule -Module "Az.Resources"
 Start-ImportModule -Module "Az.Network"
 Start-ImportModule -Module "Az.OperationalInsights"
-Start-AzConnection
+####Start-AzConnection
+Start-AzConnection -Tenant 30d9cfcc-492a-428d-a7be-d4c7f4e4cc16 -subscription 231c8a27-1e2b-4ec0-a47b-8907f8ac896b
 $Prefix = Start-UserInput -Prompt "Klantprefix" -InputMinLength 2 -InputMaxLength 4
 $AD_DomainName = Start-UserInput -Prompt "AD Domeinnaam"
 $Username = Start-UserInput -Prompt "Username" -Default "arcusadmin"
@@ -244,7 +246,7 @@ Start-SetDHCP
 Start-RestartAzVM -vmName $VMs.name[1]
 Start-Deployment -TemplateUri "https://raw.githubusercontent.com/ArcusIT/Azure-WindowsVirtualDesktop/main/Deploy_ADDS_DC.json" -vmName $VMs.name[1] -DomainName $AD_DomainName -Username "$AD_DomainName\$Username" -Password $Password
 Start-RestartAzVM -vmName $VMs.name[1]
-#Start-SetAutomationSoftwareUpdate
+Start-SetAutomationSoftwareUpdate
 Pause
 #endregion Main
 
