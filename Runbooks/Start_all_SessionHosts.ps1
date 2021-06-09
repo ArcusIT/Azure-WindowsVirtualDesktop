@@ -34,7 +34,7 @@ catch {
 $arraysessionhost = @()
 $i = 0 
 
-get-azwvdsessionhost -HostPoolName HP-WVD01 -ResourceGroupName RGR-WE-T-WVD01 | ForEach-Object {
+get-azwvdsessionhost -HostPoolName $HostPoolName -ResourceGroupName $ResourceGroupName | ForEach-Object {
     $s = $_.name -replace "$HostPoolName/"
     $s = $s.Substring(0,$s.IndexOf('.'))
     Write-Output "Starting $s..."
