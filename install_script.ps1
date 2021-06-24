@@ -1,14 +1,16 @@
-#Set-ExecutionPolicy Bypass
-#$Script = Invoke-WebRequest 'https://raw.githubusercontent.com/ArcusIT/Azure-WindowsVirtualDesktop/main/install_script.ps1' -UseBasicParsing
-#$ScriptBlock = [Scriptblock]::Create($Script.Content)
-#Invoke-Command -ScriptBlock $ScriptBlock -ArgumentList ($args + @('someargument'))
+<#
+.Synopsis
+   WVD Install script
+.DESCRIPTION
+   Installation script of a basic deployment of WVD.
+.EXAMPLE
+   Set-ExecutionPolicy Bypass
+   $Script = Invoke-WebRequest 'https://raw.githubusercontent.com/ArcusIT/Azure-WindowsVirtualDesktop/main/install_script.ps1' -UseBasicParsing
+   $ScriptBlock = [Scriptblock]::Create($Script.Content)
+   Invoke-Command -ScriptBlock $ScriptBlock -ArgumentList ($args + @('someargument'))
+#>
 
 #region Start logging
-#if (-not (New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {   
-#    Write-warning "Start het script in een elevated PowerShell"  
-#    Break
-#}
-
 try {
     Write-host "Importeren module PSFramework" -ForegroundColor Green
     Import-module PSFramework -ErrorAction Stop
