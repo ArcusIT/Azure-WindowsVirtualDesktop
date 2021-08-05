@@ -142,7 +142,7 @@ $vmIds | ForEach-Object {
     $mute = Select-AzureRmSubscription -Subscription $subscriptionId
     #Toevoeging tag om geexclude te worden van de Autoscale runbook
     $tags = (Get-AzureRmResource -ResourceGroupName $rg -Name $name).Tags
-    $tags.Add('Test09062021','')
+    $tags.Add('Maintenance','')
     Set-AzureRmResource -ResourceGroupName $rg -Name $name -ResourceType "Microsoft.Compute/VirtualMachines" -Tag $tags -Force 
     #Einde toevoeging
 
