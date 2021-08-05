@@ -87,7 +87,7 @@ $vmIds_MO | ForEach-Object {
     $name_MO = $split_MO[8];
     Write-output "Tag verwijderen van VM $name_MO"
     $tags = (Get-AzureRmResource -ResourceGroupName $rg_MO -Name $name_MO).Tags
-    $tags.Remove('Test09062021')
+    $tags.Remove('Maintenance')
     Set-AzureRmResource -ResourceGroupName $rg_MO -Name $name_MO -ResourceType "Microsoft.Compute/VirtualMachines" -Tag $tags -Force
 }
 #Einde verwijderen
